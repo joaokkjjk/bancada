@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modelos do Gargalo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Página de escolha: três modelos estáticos da tela principal do Gargalo, lado a lado em abas.
+   Visual único em 1 bit (preto e branco), como o jogo. */
+:root{--bg:#000;--fg:#fff;--mu:#8a8a8a;--px:"Silkscreen","IBM Plex Mono",monospace;--body:"IBM Plex Sans",system-ui,sans-serif;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{max-width:1180px;margin:0 auto;padding-block:32px 18px}
+h1{font:700 clamp(22px,4vw,34px)/1.1 var(--px);margin:0 0 8px}
+.top p{color:#bbb;margin:0;max-width:62ch}
+.tabs{max-width:1180px;margin:0 auto 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tab{font:700 12px var(--px);background:#000;color:#fff;border:2px solid #fff;padding:12px 10px;cursor:pointer;text-align:left;display:grid;gap:4px}
+.tab small{font:400 12px var(--body);color:#aaa}
+.tab[aria-selected="true"]{background:#fff;color:#000}
+.tab[aria-selected="true"] small{color:#333}
+.palco{max-width:1180px;margin:0 auto}
+.tela{aspect-ratio:16/9;width:100%;border:2px solid #fff;box-shadow:inset 0 0 0 2px #000,inset 0 0 0 4px #fff;position:relative;overflow:hidden;font-family:var(--px)}
+.nota{max-width:1180px;margin:16px auto 40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.nota div{border:1px dashed #666;padding:12px 14px}
+.nota b{font:700 11px var(--px);display:block;margin-bottom:6px}
+.nota p{margin:0;color:#ccc;font-size:14px}
+canvas.ic{image-rendering:pixelated;display:block}
+/* elementos comuns dos modelos */
+.hud{display:flex;gap:18px;align-items:center;font-size:clamp(16px,2.6vw,30px)}
+.hud span{display:flex;gap:6px;align-items:center}
+.barra{height:clamp(8px,1.1vw,14px);border:2px solid #fff;padding:1px;flex:1}
+.barra i{display:block;height:100%;width:62%;background:repeating-linear-gradient(90deg,#fff 0 3px,#000 3px 4px)}
+.slot{border:2px solid #fff;display:grid;place-items:center;position:relative;background:#000}
+.slot .q{position:absolute;right:4px;top:3px;font-size:clamp(12px,1.7vw,22px)}
+.slot .c{position:absolute;left:4px;top:3px;font-size:clamp(11px,1.5vw,20px);color:#aaa}
+.slot.bloq{border-style:dashed;opacity:.45}
+.slot{grid-template-rows:1fr auto;padding:4px 2px 3px}
+.slot .nm{font-size:clamp(11px,1.7vw,22px);letter-spacing:.04em;line-height:1.1}
+.slot.lim{animation:pisca 1s steps(2) infinite}
+.slot.pode{box-shadow:inset 0 0 0 2px #000,inset 0 0 0 4px #fff}
+@keyframes pisca{50%{background:#fff}}
+.slot.lim canvas{animation:inv 1s steps(2) infinite}
+@keyframes inv{50%{filter:invert(1)}}
+.balao{position:absolute;border:2px solid #fff;background:#000;padding:8px 10px;font-size:clamp(12px,1.9vw,24px)}
+/* A: cena central */
+.A{display:grid;grid-template-columns:11% 1fr 11%;grid-template-rows:auto minmax(0,1fr) auto;height:100%;padding:2%;gap:2%}
+.A .hud{grid-column:1/-1}
+.A .col{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:5%;min-height:0}
+.slot canvas.ic{width:min(50%,52px)!important;height:auto!important}
+.A .centro{display:grid;place-items:center;position:relative}
+.A .centro canvas{width:72%;height:auto}
+.A .base{grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:center}
+.A .base .slot{width:12%;aspect-ratio:1.5}
+.A .base .slot .nm,.C .inv .slot .nm{font-size:clamp(9px,1.35vw,18px)}
+.A .gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:8%;align-items:end;height:100%}
+.A .g{display:grid;gap:6px;justify-items:center;height:100%;grid-template-rows:1fr auto}
+.A .g .t{width:60%;border:2px solid #fff;position:relative;height:100%}
+.A .g .t i{position:absolute;left:2px;right:2px;bottom:2px;background:repeating-linear-gradient(0deg,#fff 0 3px,#000 3px 4px)}
+.A .g.lim .t i{background:#fff;animation:pisca 1s steps(2) infinite}
+/* B: bancada (placa-mãe vista de cima) */
+.B{display:grid;grid-template-columns:1fr 26%;grid-template-rows:auto 1fr;height:100%;padding:2%;gap:2%}
+.B .hud{grid-column:1/-1}
+.B .placa{border:2px solid #fff;position:relative;background:#000;background-image:radial-gradient(#333 1px,transparent 1px);background-size:12px 12px}
+.B .placa .slot{position:absolute}
+.B .lado{display:grid;grid-template-rows:auto 1fr auto;gap:4%}
+.B .pcmini{border:2px solid #fff;display:grid;place-items:center;padding:6%}
+.B .pcmini canvas{width:80%}
+.B .btn{border:2px solid #fff;background:#fff;color:#000;text-align:center;padding:5% 0;font-size:clamp(16px,2.6vw,30px)}
+.B .trilha{position:absolute;background:#fff}
+/* C: RPG (como as referências) */
+.C{display:grid;grid-template-columns:1fr 24%;grid-template-rows:auto 1fr auto auto;height:100%;padding:2%;gap:2% 2%}
+.C .hud{grid-column:1/-1}
+.C .quadro{border:2px solid #fff;display:grid;place-items:center;position:relative;min-height:0}
+.C .quadro canvas{height:92%;width:auto;max-width:96%}
+.C .lado{display:grid;gap:5%;align-content:start}
+.C .lado .linha{display:flex;align-items:center;gap:8px;font-size:clamp(16px,2.6vw,30px)}
+.C .mapa{border:2px solid #fff;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:6px}
+.C .mapa i{aspect-ratio:1.6;border:1px solid #fff}
+.C .mapa i.f{background:#fff}
+.C .mapa i.b{background:repeating-linear-gradient(45deg,#fff 0 2px,#000 2px 4px)}
+.C .acoes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2%}
+.C .acoes .slot{aspect-ratio:1.4;border-radius:14px}
+.C .inv{grid-column:1/-1;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:1.2%}
+.C .inv .slot{aspect-ratio:1}
+.C .dica{grid-column:1/-1;border:2px solid #fff;padding:6px 10px;font:400 clamp(16px,2.2vw,26px) var(--body)}
+.legenda{font:400 13px var(--body);color:#aaa;max-width:1180px;margin:10px auto 0}
+@media(max-width:760px){.tabs,.nota{grid-template-columns:1fr}.tela{aspect-ratio:9/16}.A{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto auto}.A .col{grid-template-columns:repeat(4,1fr);align-content:start}.A .col.dir{order:4}.A .centro{grid-column:1/-1;order:2}.A .col.esq{grid-column:1/-1;order:3}.A .col.dir{grid-column:1/-1}.A .base{order:5}.A .base .slot{width:18%}
+.B{grid-template-columns:1fr;grid-template-rows:auto 1.3fr auto}.B .lado{grid-template-columns:1fr 1fr;grid-template-rows:auto}.B .lado .gs{display:none}
+.C{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto auto}.C .lado{grid-template-columns:repeat(3,1fr)}.C .lado .mapa{display:none}.C .inv{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header class="top"><h1>GARGALO · MODELOS DE TELA</h1><p>Três propostas para a tela principal, com menos texto e mais ícones. O chefe continua como está. Escolha um modelo, ou peça uma mistura: os números e ícones aqui são de exemplo.</p></header>
+<div class="tabs" role="tablist">
+<button class="tab" role="tab" aria-selected="true" data-m="A">A · CENA CENTRAL<small>O PC no meio, peças em ícones dos lados, medidores verticais</small></button>
+<button class="tab" role="tab" aria-selected="false" data-m="B">B · BANCADA<small>A loja é a própria placa-mãe: cada slot é um upgrade</small></button>
+<button class="tab" role="tab" aria-selected="false" data-m="C">C · RPG 1-BIT<small>Inspirado nas suas referências: cena, ações e inventário</small></button>
+</div>
+<div class="palco">
+<div class="tela" data-m="A"><div class="A">
+<div class="hud"><span><canvas class="ic" data-i="bit" width="12" height="12"></canvas>1,24 mi</span><span><canvas class="ic" data-i="raio" width="12" height="12"></canvas>3,4 mil/s</span><span style="flex:1;gap:8px"><canvas class="ic" data-i="caveira" width="12" height="12"></canvas><span class="barra"><i></i></span></span><span><canvas class="ic" data-i="som" width="12" height="12"></canvas></span><span><canvas class="ic" data-i="nota" width="12" height="12"></canvas></span></div>
+<div class="col esq">
+<div class="slot pode"><canvas class="ic" data-i="cpu" width="12" height="12"></canvas><span class="q">12</span></div>
+<div class="slot lim"><canvas class="ic" data-i="ram" width="12" height="12"></canvas><span class="q">7</span></div>
+<div class="slot pode"><canvas class="ic" data-i="ssd" width="12" height="12"></canvas><span class="q">9</span></div>
+<div class="slot"><canvas class="ic" data-i="fan" width="12" height="12"></canvas><span class="q">6</span></div>
+</div>
+<div class="centro"><canvas class="cena" data-cena="pc" width="160" height="112"></canvas><div class="balao" style="right:4%;top:6%">A CPU ESPERA A MEMÓRIA</div></div>
+<div class="col dir">
+<div class="slot"><canvas class="ic" data-i="cache" width="12" height="12"></canvas><span class="q">3</span></div>
+<div class="slot"><canvas class="ic" data-i="nucleo" width="12" height="12"></canvas><span class="q">2</span></div>
+<div class="slot bloq"><canvas class="ic" data-i="gpu" width="12" height="12"></canvas></div>
+<div class="slot bloq"><canvas class="ic" data-i="npu" width="12" height="12"></canvas></div>
+</div>
+<div class="base"><div class="slot"><canvas class="ic" data-i="escudo" width="12" height="12"></canvas><span class="q">1</span></div><div class="slot"><canvas class="ic" data-i="parede" width="12" height="12"></canvas><span class="q">0</span></div><div class="slot"><canvas class="ic" data-i="coracao" width="12" height="12"></canvas><span class="q">2</span></div><div class="slot"><canvas class="ic" data-i="chave" width="12" height="12"></canvas><span class="q">1</span></div><div class="slot" style="width:auto;aspect-ratio:auto;padding:0 3%;font-size:clamp(14px,2.2vw,26px)">×2 · 32s</div></div>
+</div></div>
+<div class="tela" data-m="B" hidden><div class="B">
+<div class="hud"><span><canvas class="ic" data-i="bit" width="12" height="12"></canvas>1,24 mi</span><span><canvas class="ic" data-i="raio" width="12" height="12"></canvas>3,4 mil/s</span><span style="flex:1;gap:8px"><canvas class="ic" data-i="caveira" width="12" height="12"></canvas><span class="barra"><i></i></span></span><span><canvas class="ic" data-i="som" width="12" height="12"></canvas></span></div>
+<div class="placa">
+<div class="trilha" style="left:30%;top:36%;width:28%;height:2px"></div><div class="trilha" style="left:44%;top:36%;width:2px;height:30%"></div><div class="trilha" style="left:22%;top:66%;width:52%;height:2px"></div>
+<div class="slot pode" style="left:18%;top:16%;width:22%;height:36%"><canvas class="ic" data-i="cpu" width="12" height="12" style="width:50%"></canvas><span class="c">CPU</span><span class="q">nv 12</span></div>
+<div class="slot lim" style="left:48%;top:10%;width:7%;height:50%"><canvas class="ic" data-i="ram" width="12" height="12" style="width:80%"></canvas><span class="q">7</span></div>
+<div class="slot bloq" style="left:57%;top:10%;width:7%;height:50%"></div>
+<div class="slot" style="left:68%;top:12%;width:26%;height:22%"><canvas class="ic" data-i="fan" width="12" height="12" style="width:34%"></canvas><span class="q">6</span></div>
+<div class="slot pode" style="left:12%;top:60%;width:40%;height:12%"><canvas class="ic" data-i="ssd" width="12" height="12" style="height:70%;width:auto"></canvas><span class="q">9</span></div>
+<div class="slot bloq" style="left:12%;top:78%;width:62%;height:12%"><canvas class="ic" data-i="gpu" width="12" height="12" style="height:70%;width:auto"></canvas><span class="c">???</span></div>
+<div class="slot" style="left:68%;top:44%;width:12%;height:18%"><canvas class="ic" data-i="cache" width="12" height="12" style="width:60%"></canvas><span class="q">3</span></div>
+<div class="balao" style="left:46%;top:62%">CPU ESPERANDO A MEMÓRIA</div>
+</div>
+<div class="lado"><div class="pcmini"><canvas class="cena" data-cena="pc" width="160" height="112"></canvas></div>
+<div class="gs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;align-content:start"><div class="slot" style="aspect-ratio:1"><canvas class="ic" data-i="escudo" width="12" height="12"></canvas><span class="q">1</span></div><div class="slot" style="aspect-ratio:1"><canvas class="ic" data-i="parede" width="12" height="12"></canvas><span class="q">0</span></div><div class="slot" style="aspect-ratio:1"><canvas class="ic" data-i="coracao" width="12" height="12"></canvas><span class="q">2</span></div><div class="slot" style="aspect-ratio:1"><canvas class="ic" data-i="chave" width="12" height="12"></canvas><span class="q">1</span></div></div>
+<div class="btn">PROCESSAR</div></div>
+</div></div>
+<div class="tela" data-m="C" hidden><div class="C">
+<div class="hud"><span><canvas class="ic" data-i="bit" width="12" height="12"></canvas>1,24 mi</span><span><canvas class="ic" data-i="raio" width="12" height="12"></canvas>3,4 mil/s</span><span style="margin-left:auto">NV 4</span></div>
+<div class="quadro"><canvas class="cena" data-cena="pc" width="160" height="112"></canvas><div class="balao" style="left:4%;top:5%">ERA 32 BITS</div></div>
+<div class="lado">
+<div class="linha"><canvas class="ic" data-i="cpu" width="12" height="12"></canvas>12</div>
+<div class="linha"><canvas class="ic" data-i="ram" width="12" height="12"></canvas>7</div>
+<div class="linha"><canvas class="ic" data-i="termo" width="12" height="12"></canvas>64%</div>
+<div class="mapa"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i class="f"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+<div class="acoes"><div class="slot pode"><canvas class="ic" data-i="cpu" width="12" height="12"></canvas><span class="q">18</span></div><div class="slot lim"><canvas class="ic" data-i="ram" width="12" height="12"></canvas><span class="q">25</span></div><div class="slot pode"><canvas class="ic" data-i="ssd" width="12" height="12"></canvas><span class="q">30</span></div><div class="slot"><canvas class="ic" data-i="fan" width="12" height="12"></canvas><span class="q">40</span></div></div>
+<div class="lado"><div class="slot" style="aspect-ratio:2;font-size:clamp(16px,2.6vw,30px)">PROCESSAR</div></div>
+<div class="inv"><div class="slot"><canvas class="ic" data-i="cache" width="12" height="12"></canvas></div><div class="slot"><canvas class="ic" data-i="nucleo" width="12" height="12"></canvas></div><div class="slot bloq"><canvas class="ic" data-i="gpu" width="12" height="12"></canvas></div><div class="slot bloq"><canvas class="ic" data-i="npu" width="12" height="12"></canvas></div><div class="slot"><canvas class="ic" data-i="escudo" width="12" height="12"></canvas><span class="q">1</span></div><div class="slot"><canvas class="ic" data-i="parede" width="12" height="12"></canvas><span class="q">0</span></div><div class="slot"><canvas class="ic" data-i="coracao" width="12" height="12"></canvas><span class="q">2</span></div><div class="slot"><canvas class="ic" data-i="chave" width="12" height="12"></canvas><span class="q">1</span></div></div>
+<div class="dica">Toque numa peça para ver o que ela faz. Toque de novo para comprar.</div>
+</div></div>
+<p class="legenda">Leitura dos ícones: moldura dupla = dá para comprar · tracejado = bloqueado · piscando = é o gargalo agora · número no canto = nível. Cada ícone tem um nome curto embaixo e o gargalo aparece numa frase curta; a explicação completa aparece ao tocar/passar o mouse.</p>
+</div>
+<div class="nota">
+<div><b>A · CENA CENTRAL</b><p>O mais parecido com o Cookie Clicker. O PC fica grande no meio e as peças viram ícones dos dois lados; o gargalo é a peça que pisca. As cartas saem da tela e vão para um botão de coleção.</p></div>
+<div><b>B · BANCADA</b><p>O mais didático: a loja é uma placa-mãe vista de cima, e você vê onde cada peça encaixa. O slot que limita pisca. Melhorias aparecem como novos slots acendendo (o segundo pente de RAM vira o dual channel).</p></div>
+<div><b>C · RPG 1-BIT</b><p>O mais fiel às suas referências: cena em moldura, ações grandes com balão de custo, inventário em linha e um minimapa do progresso das eras. Combina com a tela do chefe, que já segue esse estilo.</p></div>
+</div>
+<script>
+/* ícones 12×12 em 1 bit: # = branco, . = pontilhado */
+var IC={
+cpu:["  # # # #   "," ########## ","##        ##"," # ###### # ","## #    # ##"," # # ## # # ","## # ## # ##"," # #    # # ","## ###### ##"," #        # "," ########## ","  # # # #   "],
+ram:["            ","            ","############","#          #","# ## ## ## #","# ## ## ## #","#          #","############","# # #  # # #","############","            ","            "],
+ssd:["            ","            ","            ","############","#  ##  ### #","## ##  ### #","#  ##  ### #","############","            ","            ","            ","            "],
+fan:["############","#    ##    #","#  # ## #  #","#   #  #   #","#  ##  ##  #","###  ##  ###","###  ##  ###","#  ##  ##  #","#   #  #   #","#  # ## #  #","#    ##    #","############"],
+cache:["            ","  ########  ","  #      #  ","  ########  ","    ####    "," ########## "," #        # "," ########## ","    ####    ","############","#          #","############"],
+nucleo:["############","#    ##    #","# ## ## ## #","# ## ## ## #","#    ##    #","############","############","#    ##    #","# ## ## ## #","# ## ## ## #","#    ##    #","############"],
+gpu:["            ","############","#  ##  ##  #","# #  ## #  #","# #  ## #  #","#  ##  ##  #","############","#   ######  ","    ######  ","            ","            ","            "],
+npu:["  # # # #   "," ########## ","##        ##"," #   ##   # ","##   ##   ##"," # ###### # ","## ###### ##"," #   ##   # ","##   ##   ##"," #        # "," ########## ","  # # # #   "],
+bit:["   ######   ","  #      #  "," #   ##   # ","#   ###    #","#    ##    #","#    ##    #","#    ##    #","#    ##    #","#   ####   #"," #        # ","  #      #  ","   ######   "],
+raio:["      ###   ","     ###    ","    ###     ","   ###      ","  ########  ","     ###    ","    ###     ","   ###      ","  ###       "," ##         ","            ","            "],
+caveira:["  ########  "," ########## ","############","###  ##  ###","###  ##  ###","############"," ##### #### ","  ## ## ##  ","  ########  ","   # # # #  ","            ","            "],
+som:["     #      ","    ##   #  ","   ###    # ","######  # # ","######   # #","######   # #","######  # # ","   ###    # ","    ##   #  ","     #      ","            ","            "],
+nota:["     ###### ","     #    # ","     ###### ","     #    # ","     #    # ","     #    # ","  ####  ### "," #####  ####"," ####    ## ","            ","            ","            "],
+escudo:["############","#          #","#        # #","#       #  #","# #    #   #","#  #  #    #"," #  ##    # "," #       #  ","  #     #   ","   #   #    ","    ###     ","            "],
+parede:["############","#   #   #  #","############","#  #   #   #","############","#   #   #  #","############","#  #   #   #","############","            ","            ","            "],
+coracao:[" ###   ###  ","##### ##### ","########### ","########### ","########### "," #########  ","  #######   ","   #####    ","    ###     ","     #      ","            ","            "],
+chave:["   ####     ","  #    #    ","  # ## #    ","  #    #    ","   ####     ","    ##      ","    ##      ","    ####    ","    ##      ","    ###     ","            ","            "],
+termo:["    ##      ","   #  #     ","   #  #  ## ","   #  #     ","   #  #  #  ","   ####     ","   ####  ## ","  ######    ","  ######    ","   ####     ","            ","            "]
+};
+function desenhar(cv,m){var g=cv.getContext("2d");g.fillStyle="#fff";m.forEach(function(l,y){for(var x=0;x<l.length;x++){if(l[x]==="#")g.fillRect(x,y,1,1);else if(l[x]==="."&&(x+y)%2===0)g.fillRect(x,y,1,1)}})}
+document.querySelectorAll("canvas.ic").forEach(function(c){desenhar(c,IC[c.dataset.i]||IC.bit);if(!c.style.width)c.style.width="clamp(16px,3.2vw,40px)";if(!c.style.height)c.style.height="auto"});
+/* mini cena do PC (mesmo estilo do jogo) */
+function cena(cv){var g=cv.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,160,112);g.fillStyle="#fff";
+g.fillRect(0,96,160,1);for(var y=97;y<112;y+=2)for(var x=(y%4===1?0:2);x<160;x+=4)g.fillRect(x,y,1,1);
+var cx=104,cy=48,cw=34,ch=48;g.fillRect(cx,cy,cw,1);g.fillRect(cx,cy+ch-1,cw,1);g.fillRect(cx,cy,1,ch);g.fillRect(cx+cw-1,cy,1,ch);for(var i=0;i<3;i++)g.fillRect(cx+3,cy+4+i*3,cw-6,1);
+for(var a=0;a<36;a++){var t=a/36*Math.PI*2;g.fillRect(Math.round(cx+17+Math.cos(t)*8),Math.round(cy+30+Math.sin(t)*8),1,1)}
+for(a=0;a<4;a++){var an=a*Math.PI/2+.4;for(var r=2;r<8;r++)g.fillRect(Math.round(cx+17+Math.cos(an)*r),Math.round(cy+30+Math.sin(an)*r),1,1)}
+var mx=12,my=34,mw=78,mh=50;g.fillRect(mx,my,mw,1);g.fillRect(mx,my+mh,mw+1,1);g.fillRect(mx,my,1,mh);g.fillRect(mx+mw,my,1,mh);g.fillRect(mx+34,my+mh+1,10,6);g.fillRect(mx+25,my+mh+7,28,2);
+[44,26,36].forEach(function(w,i){var by=my+8+i*12;for(var x=0;x<60;x+=2)g.fillRect(mx+10+x,by+2,1,1);g.fillRect(mx+10,by,w,5)})}
+document.querySelectorAll("canvas.cena").forEach(cena);
+/* texto reduzido: só o nome curto embaixo de cada ícone */
+var NOMES={cpu:"CPU",ram:"RAM",ssd:"SSD",fan:"COOLER",cache:"CACHE",nucleo:"NÚCLEOS",gpu:"GPU",npu:"NPU",escudo:"ANTIVÍRUS",parede:"FIREWALL",coracao:"BACKUP",chave:"PATCH"};
+document.querySelectorAll(".slot").forEach(function(s){var c=s.querySelector("canvas.ic");if(!c||!NOMES[c.dataset.i])return;var n=document.createElement("span");n.className="nm";n.textContent=s.classList.contains("bloq")?"???":NOMES[c.dataset.i];s.appendChild(n)});
+document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){document.querySelectorAll(".tab").forEach(function(x){x.setAttribute("aria-selected",String(x===t))});document.querySelectorAll(".tela").forEach(function(x){x.hidden=x.dataset.m!==t.dataset.m})}});
+</script>
+</body>
+</html>

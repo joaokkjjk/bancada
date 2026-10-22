@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+reports/
+test-results/
+playwright-report/
+.stryker-tmp/
+.playwright-mcp/
+.impeccable/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
