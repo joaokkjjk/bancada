@@ -27,6 +27,10 @@ Não faça push direto na `main`. Não feche Issues sem um PR que as resolva, ex
 - Interface em português do Brasil. Textos curtos, frases claras, sem jargão desnecessário.
 - Identidade visual: preto #0B0B0B, branco, cinza claro #E5E5E5 e cinza médio #6B6B6B; Montserrat nos títulos e Inter nos textos. Use os tokens de `:root` (cores, `--fs-*`, `--sp-*`, `--r-*`, `--ease`) em vez de valores soltos.
 - Toda tela tem estado de carregamento (skeleton), carregamento sob demanda (lazy loading) de imagens, 3D e PDFs, e animações de entrada, saída, carregamento e progresso. Respeite `prefers-reduced-motion`.
+  - Movimento segue a skill design-motion-principles com perfil educativo: polimento sutil (Jakub) primeiro, expressão (Jhey) só onde há prazer em descobrir. Entrada = opacidade + leve subida + desfoque, com `--ease`; saída mais curta e discreta, com `--ease-sai`.
+  - Sem animação em laço para chamar atenção; indicadores de carregamento podem repetir só enquanto carregam.
+  - O que é aberto pelo teclado (atalho `/`, Esc, Enter) aparece e some sem animação.
+  - Em `src/app.js`: `sair(el, fim)` para saídas, a classe `.esqueleto` para skeleton, `quandoVisivel(el, fn)` para carregar perto da tela e `carregar3D()` antes de qualquer uso do Three.js.
 - Acessibilidade: contraste mínimo de 4,5:1, foco visível, navegação por teclado, `alt` em imagens com conteúdo.
 - Conteúdo de terceiros só com licença aberta e crédito. Questões das trilhas não podem entregar a resposta (veja `scripts/balancear_trilhas.cjs`).
 - Nenhum dado pessoal sai do navegador. A observabilidade (Sentry) registra erros sem coletar informações de quem usa o site.
