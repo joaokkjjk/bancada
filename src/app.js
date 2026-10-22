@@ -4551,11 +4551,12 @@ function route() {
   contar(app);
   revelarAoRolar(app);
 }
-/* blocos abaixo da dobra entram em foco quando chegam à tela, com duração fixa (não depende da velocidade da rolagem) */
+/* sem suporte a animação ligada à rolagem: blocos abaixo da dobra entram em foco quando chegam à tela */
 var REVELAR =
   ".cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
 function revelarAoRolar(raiz) {
-  if (calmo || !window.IntersectionObserver) return;
+  // onde o CSS anima pela rolagem (animation-timeline), ele mesmo cuida da revelação
+  if (calmo || !window.IntersectionObserver || (window.CSS && CSS.supports("animation-timeline: view()"))) return;
   var o = new IntersectionObserver(
     (es) => {
       es.forEach((e) => {
