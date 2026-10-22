@@ -1,5 +1,7 @@
 # Bancada
 
+[![CI](https://github.com/joaokkjjk/bancada/actions/workflows/ci.yml/badge.svg)](https://github.com/joaokkjjk/bancada/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/joaokkjjk/bancada/graph/badge.svg)](https://codecov.io/gh/joaokkjjk/bancada)
+
 **Toda a informática num lugar só. Grátis. Para sempre.**
 
 Livros com licença aberta, peças de computador em 3D, guias, glossário, trilhas de estudo (hardware, HTML e CSS, Python, IA) e o jogo Gargalo, tudo em português, sem anúncios.
@@ -22,6 +24,10 @@ npm run dev
 | `npm run arquitetura` | dependency-cruiser: contrato de arquitetura |
 | `npm run questoes` | Confere se nenhuma questão entrega a resposta |
 | `npm run verificar` | Tudo acima |
+| `npm test` | Vitest: testes unitários (src/logica) e de integração (conteúdo) |
+| `npm run test:cobertura` | Os mesmos testes, com relatório de cobertura (enviado ao Codecov no CI) |
+| `npm run e2e` | Playwright: o site de produção no computador e no celular |
+| `npm run mutacao` | Stryker: testes de mutação da lógica (relatório em reports/mutacao) |
 | `npm run build` | Gera o site em `dist/` |
 
 ## Como contribuir

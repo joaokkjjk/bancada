@@ -38,7 +38,7 @@ window.BIBLIOTECA_PDF=[
 "i": "PT",
 "fonte": "https://educapes.capes.gov.br/handle/capes/704762",
 "arquivo": "data/pdfs/robotica-arduino-eletricidade.pdf",
-"capa": null,
+"capa": "data/capas/robotica-arduino-eletricidade.jpg",
 "paginas": 27,
 "mb": 1.3
 },
@@ -164,7 +164,7 @@ window.BIBLIOTECA_PDF=[
 "i": "PT",
 "fonte": "https://educapes.capes.gov.br/handle/capes/206223",
 "arquivo": "data/pdfs/so-gerencia-memoria.pdf",
-"capa": null,
+"capa": "data/capas/so-gerencia-memoria.jpg",
 "paginas": 7,
 "mb": 0.4
 },
@@ -262,7 +262,7 @@ window.BIBLIOTECA_PDF=[
 "i": "PT",
 "fonte": "https://educapes.capes.gov.br/handle/capes/972663",
 "arquivo": "data/pdfs/python-termos.pdf",
-"capa": null,
+"capa": "data/capas/python-termos.jpg",
 "paginas": 6,
 "mb": 0.2
 },
