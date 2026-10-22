@@ -4346,6 +4346,8 @@ function route() {
   app.textContent = "";
   app.classList.remove("saindo");
   app.appendChild(n);
+  // rota já montada: os testes de ponta a ponta esperam por este atributo
+  app.dataset.rota = location.hash || "#/";
   ["books", "parts", "tiles", "shelf", "levels", "mods", "fichas", "qlist", "stats"].forEach((c) => {
     app.querySelectorAll("." + c).forEach((g) => {
       Array.prototype.forEach.call(g.children, (el, i) => {
