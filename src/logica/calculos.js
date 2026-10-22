@@ -7,7 +7,7 @@ export function especificidade(seletor) {
     .replace(/:(is|not|has)\(/g, " ")
     .replace(/\)/g, " ");
   const a = (s.match(/#[\w-]+/g) || []).length;
-  const b = (s.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) || []).length;
+  const b = (s.match(/\.[\w-]+|\[[^\]]*\]|(?<!:):(?!:)[\w-]+/g) || []).length;
   const c = (s.replace(/\[[^\]]*\]/g, "").match(/(^|[\s>+~(])[a-zA-Z][\w-]*|::[\w-]+/g) || []).length;
   return [a, b, c];
 }
