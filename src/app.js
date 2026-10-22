@@ -284,6 +284,10 @@ function viewer3d(a, mini, op) {
       ph.replaceWith(real);
     })
     .catch(() => {
+      if (op && op.erro) {
+        ph.replaceWith(op.erro());
+        return;
+      }
       ph.textContent = "";
       ph.removeAttribute("aria-busy");
       ph.appendChild(h("div", "v3d-fallback", "O 3D não carregou. Confira a conexão e recarregue a página."));
@@ -316,8 +320,8 @@ function montarViewer3d(a, mini, op) {
     built = cena.built,
     model = cena.model,
     size = cena.size;
-  var dir = new T.Vector3().fromArray(built.cam || [5, 5, 8]).normalize();
-  var DIST = mini ? 2.1 : 1.9;
+  var dir = new T.Vector3().fromArray(op.camera || built.cam || [5, 5, 8]).normalize();
+  var DIST = op.distancia || (mini ? 2.1 : 1.9);
   cam.position.copy(dir.multiplyScalar(size * DIST));
   stage.appendChild(R.domElement);
   R.domElement.setAttribute("aria-label", "Modelo 3D: " + a.n + ". Arraste para girar.");
@@ -333,8 +337,25 @@ function montarViewer3d(a, mini, op) {
   if (mini) ctl.enableZoom = false;
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce) ctl.autoRotate = false;
+  if (op.velocidade) ctl.autoRotateSpeed = op.velocidade;
+  /* entrada: a câmera se aproxima e o modelo termina uma volta curta, desacelerando até a rotação contínua */
+  var intro = null;
+  if (op.entrada && !reduce) {
+    intro = {
+      t0: 0,
+      d1: cam.position.length(),
+      d0: cam.position.length() * 1.7,
+      base: model.rotation.y,
+      giro: -1.4,
+      auto: ctl.autoRotate,
+    };
+    ctl.autoRotate = false;
+    cam.position.setLength(intro.d0);
+    model.rotation.y = intro.base + intro.giro;
+  }
   ctl.addEventListener("start", () => {
     ctl.autoRotate = false;
+    if (intro) intro.auto = false;
   });
 
   /* pontos clicáveis */
@@ -436,10 +457,39 @@ function montarViewer3d(a, mini, op) {
     var hit = oc.intersectObject(model, true).filter((x) => x.object.visible)[0];
     return hit && hit.distance < dist - 0.05 && hit.object.userData.ponto !== k;
   }
+  /* sem desenhar quando o 3D está fora da tela ou a aba está em segundo plano */
+  var naTela = true;
+  var io = window.IntersectionObserver
+    ? new IntersectionObserver((es) => {
+        naTela = es[es.length - 1].isIntersecting;
+        retomar();
+      })
+    : null;
+  if (io) io.observe(stage);
+  function retomar() {
+    if (vivo && !raf && naTela && !document.hidden) frame();
+  }
+  document.addEventListener("visibilitychange", retomar);
   function frame() {
     if (!vivo) return;
+    if (!naTela || document.hidden) {
+      raf = 0;
+      return;
+    }
     raf = requestAnimationFrame(frame);
     medir();
+    if (intro) {
+      var agora = performance.now();
+      if (!intro.t0) intro.t0 = agora;
+      var k = Math.min(1, (agora - intro.t0) / 1600),
+        e = 1 - (1 - k) ** 4;
+      cam.position.setLength(intro.d0 + (intro.d1 - intro.d0) * e);
+      model.rotation.y = intro.base + intro.giro * (1 - e);
+      if (k >= 1) {
+        ctl.autoRotate = intro.auto;
+        intro = null;
+      }
+    }
     ctl.update();
     R.render(scene, cam);
     tick++;
@@ -461,6 +511,8 @@ function montarViewer3d(a, mini, op) {
     if (!vivo) return;
     vivo = false;
     cancelAnimationFrame(raf);
+    if (io) io.disconnect();
+    document.removeEventListener("visibilitychange", retomar);
     ctl.dispose();
     scene.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
@@ -758,25 +810,44 @@ function vHome() {
       ln("#/pecas", "bt-sec", "Explorar as peças 3D"),
     ]),
   ]);
-  /* imagem do cooler da identidade visual; acompanha levemente o mouse */
-  var foto = h("img");
-  foto.src = "marca/cooler.webp";
-  foto.alt = "Water cooler preto com o símbolo da harpia na bomba e na ventoinha";
-  foto.width = 1400;
-  foto.height = 923;
-  var palco = ln("#/pecas/refrigeracao", "ih-img", [foto]);
-  palco.setAttribute("aria-label", "Ver a refrigeração em 3D");
-  palco.addEventListener("pointermove", (e) => {
-    // só com mouse e sem preferência por movimento reduzido: é um efeito decorativo
-    if (calmo || e.pointerType !== "mouse") return;
-    var r = palco.getBoundingClientRect(),
-      x = (e.clientX - r.left) / r.width - 0.5,
-      y = (e.clientY - r.top) / r.height - 0.5;
-    foto.style.transform = "translate(" + x * -14 + "px," + y * -10 + "px) scale(1.03)";
-  });
-  palco.addEventListener("pointerleave", () => {
-    foto.style.transform = "";
-  });
+  /* imagem do cooler da identidade visual; acompanha levemente o mouse. Fica no celular e se o 3D falhar */
+  function imagemCooler() {
+    var foto = h("img");
+    foto.src = "marca/cooler.webp";
+    foto.alt = "Water cooler preto com o símbolo da harpia na bomba e na ventoinha";
+    foto.width = 1400;
+    foto.height = 923;
+    var palco = ln("#/pecas/refrigeracao", "ih-img", [foto]);
+    palco.setAttribute("aria-label", "Ver a refrigeração em 3D");
+    palco.addEventListener("pointermove", (e) => {
+      // só com mouse e sem preferência por movimento reduzido: é um efeito decorativo
+      if (calmo || e.pointerType !== "mouse") return;
+      var r = palco.getBoundingClientRect(),
+        x = (e.clientX - r.left) / r.width - 0.5,
+        y = (e.clientY - r.top) / r.height - 0.5;
+      foto.style.transform = "translate(" + x * -14 + "px," + y * -10 + "px) scale(1.03)";
+    });
+    palco.addEventListener("pointerleave", () => {
+      foto.style.transform = "";
+    });
+    return palco;
+  }
+  /* processador em 3D girando no hero, só em telas largas: no celular o Three.js nem é baixado */
+  var cpu = P.filter((x) => x.id === "cpu")[0],
+    palco;
+  if (cpu && matchMedia("(min-width: 761px)").matches) {
+    palco = h("div", "ih-3d", [
+      viewer3d(cpu, true, {
+        modelo: "cpu",
+        entrada: true,
+        velocidade: 1.2,
+        distancia: 1.6,
+        camera: [4, 2.6, 5],
+        erro: imagemCooler,
+      }),
+      h("p", "hint", [ln("#/pecas/cpu", null, "Ver o processador por dentro →")]),
+    ]);
+  } else palco = imagemCooler();
   var cats = h("div", "cats");
   SECOES.slice(0, 4).forEach((x) => {
     var a = ln("#/" + x[0], "cat", [h("i"), h("b", null, x[1]), h("span", null, x[2]), h("em", null, cont[x[0]])]);
