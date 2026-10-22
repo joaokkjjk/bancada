@@ -193,10 +193,11 @@ function miniatura(id, img) {
     return;
   }
   if (!window.MODELOS3D || !MODELOS3D[id]) return;
+  var depois = window.requestIdleCallback || ((f) => setTimeout(f, 16));
   miniatura.fila = (miniatura.fila || Promise.resolve()).then(
     () =>
       new Promise((ok) => {
-        setTimeout(() => {
+        depois(() => {
           try {
             var T = THREE,
               R =
@@ -225,11 +226,71 @@ function miniatura(id, img) {
             });
           } catch (e) {}
           ok();
-        }, 0);
+        });
       }),
   );
 }
+/* chama fn uma vez, quando o elemento chega a 300 px da área visível */
+function quandoVisivel(el, fn) {
+  if (!window.IntersectionObserver) return fn();
+  var o = new IntersectionObserver(
+    (es) => {
+      if (es.some((e) => e.isIntersecting)) {
+        o.disconnect();
+        fn();
+      }
+    },
+    { rootMargin: "300px" },
+  );
+  o.observe(el);
+  limpar.push(() => o.disconnect());
+}
+/* Three.js e os modelos só são baixados quando alguma tela mostra 3D */
+var URL3D = [
+  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+  "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
+  "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js",
+  "data/modelos3d.js",
+];
+var carregando3D = null;
+function carregar3D() {
+  if (window.THREE && window.MODELOS3D) return Promise.resolve();
+  if (!carregando3D) {
+    carregando3D = URL3D.reduce((p, u) => p.then(() => carregarScript(u)), Promise.resolve());
+    carregando3D.catch(() => {
+      carregando3D = null;
+    });
+  }
+  return carregando3D;
+}
+/* skeleton no lugar do 3D enquanto a biblioteca carrega; depois troca pelo visualizador */
 function viewer3d(a, mini, op) {
+  if (window.THREE && window.MODELOS3D) return montarViewer3d(a, mini, op);
+  var ph = h("div", (mini ? "v3d-stage" : "v3d") + " esqueleto-3d", [
+    h("div", "esq-3d", [h("span", "esq-txt", "Carregando o modelo 3D…"), h("div", "barra-ind", [h("i")])]),
+  ]);
+  ph.setAttribute("aria-busy", "true");
+  var cancelado = false,
+    real = null;
+  ph._destruir = () => {
+    cancelado = true;
+    if (real && real._destruir) real._destruir();
+  };
+  carregar3D()
+    .then(() => {
+      if (cancelado || !ph.isConnected) return;
+      real = montarViewer3d(a, mini, op);
+      real.classList.add("surge");
+      ph.replaceWith(real);
+    })
+    .catch(() => {
+      ph.textContent = "";
+      ph.removeAttribute("aria-busy");
+      ph.appendChild(h("div", "v3d-fallback", "O 3D não carregou. Confira a conexão e recarregue a página."));
+    });
+  return ph;
+}
+function montarViewer3d(a, mini, op) {
   op = op || {};
   var mid = op.modelo || a.id,
     PT = op.pontos || a.pontos || {};
@@ -603,11 +664,16 @@ function cover(b, href) {
     return c;
   }
   if (b.capa) {
-    c.classList.add("real");
+    c.classList.add("real", "esqueleto");
     var im = h("img");
-    im.src = b.capa;
     im.alt = "";
     im.loading = "lazy";
+    im.decoding = "async";
+    var pronta = () => c.classList.remove("esqueleto");
+    im.addEventListener("load", pronta, { once: true });
+    im.addEventListener("error", pronta, { once: true });
+    im.src = b.capa;
+    if (im.complete) pronta();
     c.appendChild(im);
     return c;
   }
@@ -701,6 +767,8 @@ function vHome() {
   var palco = ln("#/pecas/refrigeracao", "ih-img", [foto]);
   palco.setAttribute("aria-label", "Ver a refrigeração em 3D");
   palco.addEventListener("pointermove", (e) => {
+    // só com mouse e sem preferência por movimento reduzido: é um efeito decorativo
+    if (calmo || e.pointerType !== "mouse") return;
     var r = palco.getBoundingClientRect(),
       x = (e.clientX - r.left) / r.width - 0.5,
       y = (e.clientY - r.top) / r.height - 0.5;
@@ -786,8 +854,26 @@ function buscar(q) {
 var bov = document.getElementById("busca-ov"),
   bin = document.getElementById("busca-in"),
   bres = document.getElementById("busca-res");
-function abrirBusca(q) {
-  fecharMenu();
+/* saída curta e mais discreta que a entrada; instantânea com movimento reduzido ou quando vem do teclado */
+function sair(el, fim, instantaneo) {
+  if (instantaneo || calmo || !el.isConnected || el.hidden) {
+    fim();
+    return;
+  }
+  var feito = false;
+  var fecha = () => {
+    if (feito) return;
+    feito = true;
+    el.classList.remove("sai");
+    fim();
+  };
+  el.classList.add("sai");
+  el.addEventListener("animationend", fecha, { once: true });
+  setTimeout(fecha, 260);
+}
+function abrirBusca(q, teclado) {
+  fecharMenu(true);
+  bov.classList.toggle("instantaneo", !!teclado);
   bov.hidden = false;
   bin.value = q || "";
   mostrarBusca();
@@ -796,9 +882,15 @@ function abrirBusca(q) {
   }, 30);
   document.body.style.overflow = "hidden";
 }
-function fecharBusca() {
-  bov.hidden = true;
-  document.body.style.overflow = "";
+function fecharBusca(teclado) {
+  sair(
+    bov,
+    () => {
+      bov.hidden = true;
+      document.body.style.overflow = "";
+    },
+    teclado === true,
+  );
 }
 function mostrarBusca() {
   var q = bin.value.trim();
@@ -853,21 +945,21 @@ bin.addEventListener("keydown", (e) => {
     var a = bres.querySelector("a[href^='#/']");
     if (a) {
       location.hash = a.getAttribute("href");
-      fecharBusca();
+      fecharBusca(true);
     }
   }
 });
 document.getElementById("abrir-busca").onclick = () => {
   abrirBusca("");
 };
-document.getElementById("fechar-busca").onclick = fecharBusca;
+document.getElementById("fechar-busca").onclick = () => fecharBusca();
 bov.addEventListener("click", (e) => {
   if (e.target === bov) fecharBusca();
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    if (!bov.hidden) fecharBusca();
-    fecharMenu();
+    if (!bov.hidden) fecharBusca(true);
+    fecharMenu(true);
   } else if (
     e.key === "/" &&
     bov.hidden &&
@@ -875,7 +967,7 @@ document.addEventListener("keydown", (e) => {
     !document.body.classList.contains("modo-jogo")
   ) {
     e.preventDefault();
-    abrirBusca("");
+    abrirBusca("", true);
   }
 });
 
@@ -889,15 +981,21 @@ SECOES.forEach((x) => {
   a.onclick = fecharMenu;
   mm.firstChild.appendChild(a);
 });
-function fecharMenu() {
-  mm.hidden = true;
+function fecharMenu(instantaneo) {
+  sair(
+    mm,
+    () => {
+      mm.hidden = true;
+    },
+    instantaneo === true,
+  );
   mb.setAttribute("aria-expanded", "false");
   mb.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   document.body.style.overflow = bov.hidden ? "" : "hidden";
 }
 mb.onclick = () => {
-  if (!mm.hidden) {
+  if (!mm.hidden && !mm.classList.contains("sai")) {
     fecharMenu();
     return;
   }
@@ -3181,13 +3279,16 @@ function vPecas() {
   P.forEach((a, i) => {
     var pic = h("div", "pic");
     var VL = ((window.VARIANTES || {})[a.id] || {}).lista || [];
-    if (window.MODELOS3D && MODELOS3D[a.id]) {
+    if (a.modelo3d !== false) {
       var im = h("img");
       im.alt = "";
       im.width = 560;
       im.height = 420;
+      im.decoding = "async";
+      pic.classList.add("esqueleto");
+      im.addEventListener("load", () => pic.classList.remove("esqueleto"), { once: true });
       pic.appendChild(im);
-      miniatura(a.id, im);
+      quandoVisivel(pic, () => carregar3D().then(() => miniatura(a.id, im)));
     } else pic.appendChild(partArt(a.id));
     var card = ln("#/pecas/" + a.id, "part", [
       pic,
@@ -3661,7 +3762,7 @@ function vPdf(id, pg) {
     ]),
   ]);
   var folhas = h("div", "pdf-folhas"),
-    status = h("p", "pdf-status", "Abrindo o PDF…");
+    status = h("div", "pdf-status", [h("span", null, "Baixando o PDF…"), h("div", "barra-prog", [h("i")])]);
   var info = h("div", "pdf-info", [
     cover(b),
     h("div", null, [
@@ -3950,8 +4051,9 @@ function vPdf(id, pg) {
   var popAtual = null;
   function fecharPop() {
     if (popAtual) {
-      popAtual.remove();
+      var p = popAtual;
       popAtual = null;
+      sair(p, () => p.remove());
     }
   }
   function pop(m, filhos) {
@@ -4233,7 +4335,9 @@ function vPdf(id, pg) {
     if (caderno.hidden) return;
     an.n = ta.value;
     salvarAnot();
-    caderno.hidden = true;
+    sair(caderno, () => {
+      caderno.hidden = true;
+    });
     bNotas.setAttribute("aria-expanded", "false");
     bLista.setAttribute("aria-expanded", "false");
   }
@@ -4267,14 +4371,25 @@ function vPdf(id, pg) {
     folhas.appendChild(s);
   }
   pdfLib()
-    .then((lib) => lib.getDocument({ url: b.arquivo, disableRange: true, disableStream: true }).promise)
+    .then((lib) => {
+      var tarefa = lib.getDocument({ url: b.arquivo, disableRange: true, disableStream: true });
+      var barra = status.querySelector(".barra-prog i"),
+        rot = status.querySelector("span");
+      tarefa.onProgress = (pr) => {
+        if (!pr.total) return;
+        var f = Math.min(1, pr.loaded / pr.total);
+        barra.style.transform = "scaleX(" + f + ")";
+        rot.textContent = "Baixando o PDF… " + Math.round(f * 100) + "%";
+      };
+      return tarefa.promise;
+    })
     .then((d) => {
       if (!vivo) {
         d.destroy();
         return;
       }
       doc = d;
-      status.remove();
+      sair(status, () => status.remove());
       slots.forEach((s) => {
         obs.observe(s);
       });
@@ -4285,6 +4400,7 @@ function vPdf(id, pg) {
     .catch(() => {
       status.textContent =
         "Não foi possível abrir este PDF agora. Tente recarregar a página ou veja a página oficial do livro.";
+      status.classList.add("erro");
     });
   return h("div", "wrap pg leitor-pdf", [info, bar, status, h("div", "pdf-corpo", [folhas, ferr]), caderno, okBt]);
 }
@@ -4362,6 +4478,31 @@ function route() {
   });
   window.scrollTo({ top: 0, behavior: "instant" });
   contar(app);
+  revelarAoRolar(app);
+}
+/* blocos abaixo da dobra entram em foco quando chegam à tela, com duração fixa (não depende da velocidade da rolagem) */
+var REVELAR =
+  ".cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
+function revelarAoRolar(raiz) {
+  if (calmo || !window.IntersectionObserver) return;
+  var o = new IntersectionObserver(
+    (es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        o.unobserve(e.target);
+        e.target.classList.add("visto");
+        // depois de revelado, volta às transições normais do elemento (hover etc.)
+        setTimeout(() => e.target.classList.remove("revelar", "visto"), 1100);
+      });
+    },
+    { rootMargin: "0px 0px -8% 0px" },
+  );
+  raiz.querySelectorAll(REVELAR).forEach((el) => {
+    if (el.getBoundingClientRect().top < innerHeight) return;
+    el.classList.add("revelar");
+    o.observe(el);
+  });
+  limpar.push(() => o.disconnect());
 }
 /* números das categorias sobem de zero quando a página abre */
 function contar(raiz) {
