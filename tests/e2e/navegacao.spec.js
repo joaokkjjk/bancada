@@ -13,7 +13,7 @@ const ROTAS = [
 
 for (const [rota, titulo] of ROTAS) {
   test(`abre /${rota || "início"} sem erros`, async ({ page }) => {
-    // a lista de peças gera miniaturas 3D na hora; sem placa de vídeo, no CI, leva uns 20 s (ver Issue #4)
+    // a lista de peças baixa o Three.js e desenha miniaturas 3D; sem placa de vídeo, no CI, isso é lento
     if (rota === "pecas") test.slow();
     const v = vigiarErros(page);
     await abrir(page, rota);
