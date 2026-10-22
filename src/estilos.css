@@ -5470,3 +5470,41 @@ footer {
     transition: none !important;
   }
 }
+
+/* processador 3D do início: entra pelo visualizador (.surge + aproximação da câmera) e sai afastando e desfocando */
+.inicio .ih-3d {
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  height: auto;
+  max-height: 600px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.07), transparent 72%);
+  animation: aparece 0.8s 0.2s var(--ease) both;
+}
+.inicio .ih-3d .esqueleto-3d {
+  background: transparent;
+  min-height: 0;
+}
+.inicio .ih-3d .hint {
+  right: 0;
+  bottom: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s var(--ease);
+}
+.inicio .ih-3d .hint:hover {
+  opacity: 1;
+}
+#app.saindo .ih-3d {
+  animation: sai3d 0.16s var(--ease-sai) both;
+}
+@keyframes sai3d {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(6px);
+  }
+}
+@media (max-width: 760px) {
+  .inicio .ih-3d {
+    display: none;
+  }
+}

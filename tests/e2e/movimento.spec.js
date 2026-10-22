@@ -1,13 +1,32 @@
 import { expect, test } from "@playwright/test";
 import { abrir, vigiarErros } from "./apoio.js";
 
-test("o início não baixa o Three.js; ele só carrega quando uma tela usa 3D", async ({ page }) => {
+test("no celular o início não baixa o Three.js", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "no computador o início mostra o processador em 3D");
   const pedidos = [];
   page.on("request", (r) => pedidos.push(r.url()));
   await abrir(page, "");
   await page.waitForLoadState("networkidle");
   expect(pedidos.some((u) => /three(\.min)?\.js|modelos3d\.js/.test(u))).toBe(false);
   expect(await page.evaluate(() => typeof window.THREE)).toBe("undefined");
+});
+
+test("no computador o início mostra o processador girando em 3D e o tira ao sair", async ({ page, isMobile }) => {
+  test.skip(isMobile, "no celular o início fica sem 3D");
+  test.slow();
+  const v = vigiarErros(page);
+  await abrir(page, "");
+  const canvas = page.locator(".ih-3d canvas");
+  await expect(canvas).toBeVisible({ timeout: 20_000 });
+  // a rotação muda a imagem entre dois instantes
+  await page.waitForTimeout(2000);
+  const a = await canvas.screenshot();
+  await page.waitForTimeout(700);
+  const b = await canvas.screenshot();
+  expect(a.equals(b)).toBe(false);
+  await abrir(page, "trilhas");
+  await expect(page.locator("canvas")).toHaveCount(0);
+  v.semErros();
 });
 
 test("o 3D mostra um skeleton enquanto carrega e depois o modelo", async ({ page }) => {

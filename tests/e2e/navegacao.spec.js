@@ -14,7 +14,7 @@ const ROTAS = [
 for (const [rota, titulo] of ROTAS) {
   test(`abre /${rota || "início"} sem erros`, async ({ page }) => {
     // a lista de peças baixa o Three.js e desenha miniaturas 3D; sem placa de vídeo, no CI, isso é lento
-    if (rota === "pecas") test.slow();
+    if (rota === "pecas" || rota === "") test.slow();
     const v = vigiarErros(page);
     await abrir(page, rota);
     await expect(page.locator("#app h1").first()).toHaveText(titulo);
