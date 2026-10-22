@@ -45,14 +45,14 @@ def capa(pdf, destino):
 
 def main():
     raiz, lista = sys.argv[1], json.load(open(sys.argv[2], encoding="utf-8"))
-    os.makedirs(os.path.join(raiz, "data", "pdfs"), exist_ok=True)
-    os.makedirs(os.path.join(raiz, "data", "capas"), exist_ok=True)
+    os.makedirs(os.path.join(raiz, "public", "data", "pdfs"), exist_ok=True)
+    os.makedirs(os.path.join(raiz, "public", "data", "capas"), exist_ok=True)
     saida = []
     for b in lista:
-        pdf = os.path.join(raiz, "data", "pdfs", b["id"] + ".pdf")
+        pdf = os.path.join(raiz, "public", "data", "pdfs", b["id"] + ".pdf")
         try:
             baixar(b["pdf"], pdf)
-            paginas = capa(pdf, os.path.join(raiz, "data", "capas", b["id"] + ".jpg"))
+            paginas = capa(pdf, os.path.join(raiz, "public", "data", "capas", b["id"] + ".jpg"))
         except Exception as e:
             print("FORA:", b["id"], e)
             continue
@@ -63,7 +63,7 @@ def main():
             item["capa"] = None
         saida.append(item)
         print("ok:", b["id"], paginas, "páginas")
-    with open(os.path.join(raiz, "data", "biblioteca-pdf.js"), "w", encoding="utf-8") as f:
+    with open(os.path.join(raiz, "public", "data", "biblioteca-pdf.js"), "w", encoding="utf-8") as f:
         f.write("// Gerado por montar_biblioteca_pdf.py: livros em PDF hospedados no Bancada, com licença aberta conferida.\n")
         f.write("window.BIBLIOTECA_PDF=")
         json.dump(saida, f, ensure_ascii=False, indent=0)

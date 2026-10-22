@@ -147,9 +147,9 @@ def ler_lista(caminho, var):
 
 def main():
     raiz = sys.argv[1]
-    itens = ler_lista(os.path.join(raiz, "data", "biblioteca.js"), "BIBLIOTECA")
-    itens += ler_lista(os.path.join(raiz, "data", "biblioteca-hardware.js"), "BIBLIOTECA_HW")
-    pasta = os.path.join(raiz, "data", "capas")
+    itens = ler_lista(os.path.join(raiz, "public", "data", "biblioteca.js"), "BIBLIOTECA")
+    itens += ler_lista(os.path.join(raiz, "public", "data", "biblioteca-hardware.js"), "BIBLIOTECA_HW")
+    pasta = os.path.join(raiz, "public", "data", "capas")
     os.makedirs(pasta, exist_ok=True)
     mapa = {}
     with ThreadPoolExecutor(8) as ex:
@@ -161,7 +161,7 @@ def main():
                 f.write(b)
             mapa[url] = {"img": "data/capas/" + nome, "de": origem}
             print("capa:", url)
-    with open(os.path.join(raiz, "data", "capas.js"), "w", encoding="utf-8") as f:
+    with open(os.path.join(raiz, "public", "data", "capas.js"), "w", encoding="utf-8") as f:
         f.write("// Gerado por buscar_capas.py: capa encontrada para cada link (img local e endereço de origem).\n")
         f.write("window.CAPAS=")
         json.dump(mapa, f, ensure_ascii=False, indent=0)
