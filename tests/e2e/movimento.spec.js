@@ -38,12 +38,18 @@ test("o 3D mostra um skeleton enquanto carrega e depois o modelo", async ({ page
   v.semErros();
 });
 
-test("blocos abaixo da dobra entram em foco ao rolar", async ({ page }) => {
+test("blocos abaixo da dobra sobem e entram em foco acompanhando a rolagem", async ({ page }) => {
   await abrir(page, "");
-  const abaixo = page.locator(".revelar").first();
-  await expect(abaixo).toBeAttached();
-  await abaixo.scrollIntoViewIfNeeded();
-  await expect(abaixo).toHaveClass(/visto/);
+  const livro = page.locator(".shelf > *").first();
+  // o Chromium anima pela rolagem (animation-timeline); outros navegadores usam a classe .revelar
+  await expect(livro).toHaveCSS("animation-name", "revela");
+  await expect(livro).toHaveCSS("animation-timeline", "view()");
+  const antes = Number(await livro.evaluate((e) => getComputedStyle(e).opacity));
+  await livro.scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 300);
+  await expect
+    .poll(async () => Number(await livro.evaluate((e) => getComputedStyle(e).opacity)))
+    .toBeGreaterThan(antes);
 });
 
 test("a busca entra e sai com animação; pelo atalho de teclado, sem animação", async ({ page }) => {
