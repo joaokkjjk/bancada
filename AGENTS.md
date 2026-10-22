@@ -28,7 +28,7 @@ Não faça push direto na `main`. Não feche Issues sem um PR que as resolva, ex
 - Identidade visual: preto #0B0B0B, branco, cinza claro #E5E5E5 e cinza médio #6B6B6B; Montserrat nos títulos e Inter nos textos. Use os tokens de `:root` (cores, `--fs-*`, `--sp-*`, `--r-*`, `--ease`) em vez de valores soltos.
 - Toda tela tem estado de carregamento (skeleton), carregamento sob demanda (lazy loading) de imagens, 3D e PDFs, e animações de entrada, saída, carregamento e progresso. Respeite `prefers-reduced-motion`.
 - Acessibilidade: contraste mínimo de 4,5:1, foco visível, navegação por teclado, `alt` em imagens com conteúdo.
-- Conteúdo de terceiros só com licença aberta e crédito. Questões das trilhas não podem entregar a resposta (veja `scripts/balancear_trilhas.js`).
+- Conteúdo de terceiros só com licença aberta e crédito. Questões das trilhas não podem entregar a resposta (veja `scripts/balancear_trilhas.cjs`).
 - Nenhum dado pessoal sai do navegador. A observabilidade (Sentry) registra erros sem coletar informações de quem usa o site.
 
 ## Antes de abrir o PR
