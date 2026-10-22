@@ -1,0 +1,31 @@
+{
+  "name": "bancada",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Toda a informática num lugar só. Grátis. Para sempre.",
+  "type": "module",
+  "license": "CC-BY-SA-4.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "biome check .",
+    "lint:corrigir": "biome check --write .",
+    "knip": "knip",
+    "arquitetura": "depcruise src --config .dependency-cruiser.cjs",
+    "commits": "commitlint --from origin/main --to HEAD",
+    "questoes": "node scripts/balancear_trilhas.cjs",
+    "verificar": "npm run lint && npm run knip && npm run arquitetura"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.2",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "dependency-cruiser": "^18.7.0",
+    "knip": "^6.42.1",
+    "vite": "^8.3.5"
+  }
+}
