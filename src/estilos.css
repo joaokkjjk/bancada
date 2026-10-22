@@ -3717,8 +3717,8 @@ footer .wrap {
 @keyframes entra {
   from {
     opacity: 0.001;
-    transform: translateY(10px);
-    filter: blur(4px);
+    transform: translateY(18px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
@@ -3728,8 +3728,8 @@ footer .wrap {
 @keyframes sobe {
   from {
     opacity: 0.001;
-    transform: translateY(12px) scale(0.985);
-    filter: blur(4px);
+    transform: translateY(22px) scale(0.98);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
@@ -3747,7 +3747,7 @@ footer .wrap {
   }
 }
 #app > * {
-  animation: entra 0.45s var(--ease) both;
+  animation: entra 0.6s var(--ease) both;
 }
 #app.saindo > * {
   animation: some 0.16s var(--ease-sai) both;
@@ -4703,17 +4703,54 @@ header.top.rolou .topin {
 .busca-res > div {
   animation: entra 0.3s var(--ease) both;
 }
-/* revelar ao rolar: o JS marca só o que está abaixo da dobra; sem JS, tudo aparece parado */
+/* revelar ao rolar, ligado à rolagem (Chrome, Edge): o bloco sobe e entra em foco acompanhando o scroll.
+   Nos outros navegadores o JS usa a classe .revelar abaixo; com movimento reduzido, nada disso roda. */
+@supports (animation-timeline: view()) {
+  .cat,
+  .duo-cards a,
+  .lema,
+  .sec-head,
+  .shelf > *,
+  .books > *,
+  .parts > *,
+  details.g,
+  .panel,
+  .mods > *,
+  .qlist > *,
+  figure.vis,
+  .var-ficha,
+  .art-body section,
+  .levels > *,
+  .trilhas-g > *,
+  .rodape > * {
+    animation: revela linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+}
+@keyframes revela {
+  from {
+    opacity: 0.001;
+    transform: translateY(40px) scale(0.98);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+/* revelar ao rolar sem suporte a scroll: o JS marca só o que está abaixo da dobra; sem JS, tudo aparece parado */
 .revelar {
   /* a revelação substitui a entrada em sequência das grades */
   animation: none;
   opacity: 0.001;
-  transform: translateY(16px);
-  filter: blur(4px);
+  transform: translateY(32px);
+  filter: blur(6px);
   transition:
-    opacity 0.5s var(--ease),
-    transform 0.5s var(--ease),
-    filter 0.5s var(--ease);
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease),
+    filter 0.7s var(--ease);
   transition-delay: calc(var(--i, 0) * 40ms);
 }
 .revelar.visto {
