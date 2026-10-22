@@ -17,7 +17,7 @@ Bancada é um site gratuito, em português, que centraliza conteúdo de informá
 2. **Crie uma branch a partir da `main`**, com o tipo e o número da Issue: `correcao/12-leitor-pdf-zoom`, `melhoria/15-skeleton-livros`, `nova-funcao/20-trilha-redes`.
 3. **Faça commits pequenos** no padrão Conventional Commits, em português: `fix: corrige zoom do leitor de PDF`, `feat: adiciona trilha de redes`, `refactor:`, `test:`, `docs:`, `chore:`. O commitlint confere isso.
 4. **Abra um Pull Request para a `main`.** A descrição precisa mencionar a Issue com uma palavra de fechamento, por exemplo `Closes #12`, e explicar o que mudou e como foi testado. Um PR resolve uma Issue; se a tarefa cresceu, abra outra Issue.
-5. **O PR só entra quando o CI passa:** lint (Biome), código morto (Knip), contrato de arquitetura, testes unitários e de integração (Vitest), testes de ponta a ponta (Playwright) e cobertura (Codecov). Não desative verificações para fazer o PR passar.
+5. **O PR só entra quando o CI passa:** lint (Biome), código morto (Knip), contrato de arquitetura, testes unitários e de integração (Vitest), testes de ponta a ponta (Playwright), testes de mutação (Stryker) e cobertura (Codecov). Não desative verificações para fazer o PR passar.
 6. **Deploy acontece pelo merge na `main`.** Nunca publique direto de uma branch. O que está na `main` é o que está no ar.
 
 Não faça push direto na `main`. Não feche Issues sem um PR que as resolva, exceto quando forem descartadas, com um comentário explicando o porquê.
@@ -33,4 +33,4 @@ Não faça push direto na `main`. Não feche Issues sem um PR que as resolva, ex
 
 ## Antes de abrir o PR
 
-Rode localmente o mesmo que o CI roda (os comandos ficam no `package.json`): lint, testes unitários e testes de ponta a ponta. Inclua na descrição do PR o que foi testado e, para mudanças visuais, uma captura de tela do computador e do celular.
+Rode localmente o mesmo que o CI roda: `npm run verificar`, `npm test`, `npm run e2e` e, se mexeu em `src/logica`, `npm run mutacao`. Toda função nova em `src/logica` precisa de teste unitário; toda tela nova, de pelo menos um teste de ponta a ponta. Inclua na descrição do PR o que foi testado e, para mudanças visuais, uma captura de tela do computador e do celular.
