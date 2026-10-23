@@ -4603,16 +4603,26 @@ header.top.rolou .topin {
   animation: linha 0.9s var(--ease) both;
 }
 .inicio .ih-txt h1 .l2 {
-  animation-delay: 0.09s;
+  animation-delay: 0.08s;
 }
 .inicio .ih-txt .sub {
-  animation: entra 0.8s 0.25s var(--ease) both;
+  animation: entra 0.6s 0.16s var(--ease) both;
 }
 .inicio .ih-txt p.txt {
-  animation: entra 0.8s 0.35s var(--ease) both;
+  animation: entra 0.6s 0.24s var(--ease) both;
 }
 .inicio .ih-acoes {
-  animation: entra 0.8s 0.45s var(--ease) both;
+  animation: entra 0.6s 0.32s var(--ease) both;
+}
+/* cabeçalho de cada aba: selo, título e texto em sequência de 80 ms */
+.pg-head > * {
+  animation: entra 0.6s var(--ease) both;
+}
+.pg-head > :nth-child(2) {
+  animation-delay: 0.08s;
+}
+.pg-head > :nth-child(3) {
+  animation-delay: 0.16s;
 }
 .inicio .ih-img {
   animation: aparece 0.8s 0.2s var(--ease) both;
@@ -4637,9 +4647,33 @@ header.top.rolou .topin {
 .busca-res a,
 .menu-mob a {
   transition:
-    background 0.3s,
-    border-color 0.3s,
-    transform 0.35s var(--ease);
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    translate 0.2s var(--ease);
+}
+.cat:hover,
+.part:hover,
+.tile:hover {
+  translate: 0 -3px;
+}
+.btn,
+.chip,
+.q-o,
+.bt-mini,
+.fr-bt,
+.gp {
+  transition:
+    background 0.2s var(--ease),
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+.btn:active,
+.chip:active,
+.bt-mini:active,
+.fr-bt:active,
+.gp:active {
+  transform: scale(0.97);
 }
 .cat svg,
 .duo-cards svg,
@@ -4661,9 +4695,9 @@ header.top.rolou .topin {
 .mod,
 .trilha {
   transition:
-    background 0.3s,
-    border-color 0.3s,
-    translate 0.35s var(--ease);
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    translate 0.2s var(--ease);
 }
 .duo-cards a:hover,
 .mod:hover,
@@ -4725,19 +4759,17 @@ header.top.rolou .topin {
   .rodape > * {
     animation: revela linear both;
     animation-timeline: view();
-    animation-range: entry 0% entry 45%;
+    animation-range: entry 0% cover 22%;
   }
 }
 @keyframes revela {
   from {
     opacity: 0.001;
-    transform: translateY(40px) scale(0.98);
-    filter: blur(6px);
+    transform: translateY(32px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 /* revelar ao rolar sem suporte a scroll: o JS marca só o que está abaixo da dobra; sem JS, tudo aparece parado */
@@ -4746,17 +4778,14 @@ header.top.rolou .topin {
   animation: none;
   opacity: 0.001;
   transform: translateY(32px);
-  filter: blur(6px);
   transition:
-    opacity 0.7s var(--ease),
-    transform 0.7s var(--ease),
-    filter 0.7s var(--ease);
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
   transition-delay: calc(var(--i, 0) * 40ms);
 }
 .revelar.visto {
   opacity: 1;
   transform: none;
-  filter: none;
 }
 
 /* ===== carregamento: skeleton, progresso e saídas ===== */
