@@ -6,7 +6,7 @@ const ROTAS = [
   ["biblioteca", /Biblioteca/],
   ["pecas", /Uma peça de cada vez/],
   ["guias", /Passo a passo/],
-  ["glossario", /Termos sem mistério/],
+  ["glossario", /Glossário/],
   ["trilhas", /Aprenda em sequência/],
   ["questoes", /Pratique por tema/],
 ];
@@ -32,7 +32,7 @@ test("o menu leva às seções e marca a seção atual", async ({ page, isMobile
     await page.locator("nav.main a", { hasText: "Glossário" }).click();
   }
   await expect(page).toHaveURL(/#\/glossario/);
-  await expect(page.locator("#app h1")).toHaveText(/Termos/);
+  await expect(page.locator("#app h1")).toHaveText(/Glossário/);
   if (!isMobile) await expect(page.locator('nav.main a[data-r="glossario"]')).toHaveAttribute("aria-current", "page");
 });
 
@@ -109,4 +109,14 @@ test("a biblioteca mostra prateleiras e vira resultado ao buscar", async ({ page
   await page.locator("#qb").fill("");
   await page.locator("#bib-formato").selectOption("PDF");
   await expect(page.locator(".books .book").first()).toBeVisible();
+});
+
+test("o glossário leva à letra escolhida e marca a letra na barra", async ({ page, isMobile }) => {
+  await abrir(page, "glossario");
+  await expect(page.locator(".dic-dia b")).not.toBeEmpty();
+  await page.locator(".dic-letras a", { hasText: /^M$/ }).click();
+  await expect(page.locator("#letra-M")).toBeInViewport();
+  await expect(page.locator(".dic-letras a[aria-current]")).toHaveText("M");
+  await page.locator(".dic-temas .chip").first().click();
+  await expect(page.locator(".dic-letra")).toHaveCount(0);
 });
