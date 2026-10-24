@@ -202,6 +202,8 @@ export default {
   "bib.todosNiveis": "Alle Stufen",
   "bib.formato": "Format",
   "bib.textoPdf": "Text und PDF",
+  "bib.lingua": "Sprache",
+  "bib.todasLinguas": "Alle Sprachen",
   "bib.irArea": "Zu einem Fachgebiet",
   "bib.livrosAreas": "{l} in {a} Fachgebieten",
   "bib.encontrados": "{n} Buch gefunden|{n} Bücher gefunden",
@@ -222,6 +224,8 @@ export default {
     "Die Bilder des Originals wurden nicht übernommen. Wenn ein Abschnitt eine Abbildung erwähnt, öffne das Kapitel bei {w} über den Link am Seitenende.",
   "ler.proximo": "Weiter →",
   "ler.anterior": "← Zurück",
+  "ler.carregando": "Kapitel wird geladen…",
+  "ler.falhouTexto": "Das Kapitel wurde nicht geladen. Prüf die Verbindung und lade die Seite neu.",
   "ler.creditoProprio":
     "Originaltext von Bancada unter der Lizenz CC BY-SA 4.0. Du darfst ihn kopieren und bearbeiten, wenn du die Quelle nennst und dieselbe Lizenz verwendest.",
   "ler.creditoWiki1": "Text von ",

@@ -203,6 +203,8 @@ export default {
   "bib.todosNiveis": "Tous les niveaux",
   "bib.formato": "Format",
   "bib.textoPdf": "Texte et PDF",
+  "bib.lingua": "Langue",
+  "bib.todasLinguas": "Toutes les langues",
   "bib.irArea": "Aller à un domaine",
   "bib.livrosAreas": "{l} dans {a} domaines",
   "bib.encontrados": "{n} livre trouvé|{n} livres trouvés",
@@ -222,6 +224,8 @@ export default {
     "Les images de l’original n’ont pas été reprises. Si un passage cite une figure, ouvrez le chapitre sur {w} avec le lien en bas de page.",
   "ler.proximo": "Suivant →",
   "ler.anterior": "← Précédent",
+  "ler.carregando": "Chargement du chapitre…",
+  "ler.falhouTexto": "Le chapitre ne s’est pas chargé. Vérifiez la connexion et rechargez la page.",
   "ler.creditoProprio":
     "Texte original de Bancada, sous licence CC BY-SA 4.0. Vous pouvez le copier et l’adapter en citant la source et en gardant la même licence.",
   "ler.creditoWiki1": "Texte de ",

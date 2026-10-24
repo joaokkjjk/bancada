@@ -201,6 +201,8 @@ export default {
   "bib.todosNiveis": "Todos los niveles",
   "bib.formato": "Formato",
   "bib.textoPdf": "Texto y PDF",
+  "bib.lingua": "Idioma",
+  "bib.todasLinguas": "Todos los idiomas",
   "bib.irArea": "Ir a un área",
   "bib.livrosAreas": "{l} en {a} áreas",
   "bib.encontrados": "{n} libro encontrado|{n} libros encontrados",
@@ -219,6 +221,8 @@ export default {
     "Las imágenes del original no se incluyeron. Si un fragmento menciona una figura, abre el capítulo en {w} con el enlace al final de la página.",
   "ler.proximo": "Siguiente →",
   "ler.anterior": "← Anterior",
+  "ler.carregando": "Cargando el capítulo…",
+  "ler.falhouTexto": "El capítulo no se cargó. Revisa la conexión y recarga la página.",
   "ler.creditoProprio":
     "Texto original de Bancada, bajo licencia CC BY-SA 4.0. Puedes copiarlo y adaptarlo citando la fuente y manteniendo la misma licencia.",
   "ler.creditoWiki1": "Texto de ",

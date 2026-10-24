@@ -104,6 +104,13 @@ describe("biblioteca", () => {
       expect(b.l, `licença de ${b.id}`).toBeTruthy();
     }
   });
+  it("todo livro tem uma das 5 línguas", () => {
+    for (const b of [...LIVROS, ...BIBLIOTECA_PDF]) expect(["PT", "EN", "ES", "FR", "DE"], b.id).toContain(b.i || "PT");
+  });
+  it("há livros em cada uma das 5 línguas", () => {
+    const linguas = new Set([...LIVROS, ...BIBLIOTECA_PDF].map((b) => b.i || "PT"));
+    expect([...linguas].sort()).toEqual(["DE", "EN", "ES", "FR", "PT"]);
+  });
   it("ids de livros e PDFs não se repetem", () => {
     const ids = [...LIVROS.map((l) => l.id), ...BIBLIOTECA_PDF.map((b) => b.id)];
     expect(new Set(ids).size).toBe(ids.length);
@@ -111,7 +118,13 @@ describe("biblioteca", () => {
   it("livros para ler no site têm capítulos com conteúdo", () => {
     for (const l of LIVROS) {
       expect(l.caps.length, l.id).toBeGreaterThan(0);
-      for (const c of l.caps) expect(c.t && c.html.length > 50, `${l.id}: ${c.t}`).toBeTruthy();
+      // livros das outras línguas: o texto fica em data/livros/textos/<id>.js, baixado ao abrir
+      if (l.textos) vm.runInContext(readFileSync(join(raiz, "public", l.textos), "utf8"), ctx);
+      const textos = l.textos ? ctx.LIVROS_TEXTO[l.id] : l.caps.map((c) => c.html);
+      expect(textos.length, l.id).toBe(l.caps.length);
+      l.caps.forEach((c, i) => {
+        expect(c.t && textos[i].length > 50, `${l.id}: ${c.t}`).toBeTruthy();
+      });
     }
   });
 });
