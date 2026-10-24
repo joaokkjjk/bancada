@@ -27,5 +27,6 @@ export async function abrir(page, rota) {
   const hash = `#/${rota}`;
   if (page.url().includes("#/")) await page.evaluate((h) => (location.hash = h), hash);
   else await page.goto(`./${hash}`);
-  await expect(page.locator("#app")).toHaveAttribute("data-rota", hash === "#/" ? /^#\/?$/ : hash);
+  // sem placa de vídeo (CI), o 3D do início ocupa o processador e atrasa a troca de página
+  await expect(page.locator("#app")).toHaveAttribute("data-rota", hash === "#/" ? /^#\/?$/ : hash, { timeout: 20_000 });
 }

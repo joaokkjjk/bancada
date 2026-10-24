@@ -82,3 +82,17 @@ test("um livro abre no leitor do site", async ({ page }) => {
   await expect(page.locator("#app h1").first()).not.toBeEmpty();
   v.semErros();
 });
+
+test("o início lembra o último livro aberto e a trilha em andamento", async ({ page }) => {
+  test.slow();
+  await abrir(page, "");
+  await expect(page.locator(".vt-ler .vt-k")).toHaveText("COMECE A LER");
+  await abrir(page, "ler/livro-que-nao-existe/1");
+  await abrir(page, "ler/por-dentro-do-pc/1");
+  await abrir(page, "trilhas/ram/2");
+  await abrir(page, "");
+  await expect(page.locator(".vt-ler .vt-k")).toHaveText("CONTINUE LENDO");
+  await expect(page.locator(".vt-ler b")).toContainText("Por dentro do PC");
+  await expect(page.locator(".vitrine")).toContainText("Memória RAM");
+  await expect(page.locator(".vitrine")).toContainText("Módulo 2 de 6");
+});
