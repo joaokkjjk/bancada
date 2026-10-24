@@ -171,6 +171,12 @@ export default {
   "glos.nada": "Nenhum termo encontrado. Tente outra palavra ou outro tema.",
   "glos.termos": "{n} termo|{n} termos",
   "glos.porTema": "POR TEMA",
+  "tema.Hardware": "Hardware",
+  "tema.Software": "Software",
+  "tema.Redes": "Redes",
+  "tema.Programação": "Programação",
+  "tema.Segurança": "Segurança",
+  "tema.Dados e IA": "Dados e IA",
 
   "jogo.falhou": "O jogo não carregou. Recarregue a página.",
 

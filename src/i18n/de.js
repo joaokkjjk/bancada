@@ -171,6 +171,12 @@ export default {
   "glos.nada": "Kein Begriff gefunden. Versuch ein anderes Wort oder ein anderes Thema.",
   "glos.termos": "{n} Begriff|{n} Begriffe",
   "glos.porTema": "NACH THEMA",
+  "tema.Hardware": "Hardware",
+  "tema.Software": "Software",
+  "tema.Redes": "Netzwerke",
+  "tema.Programação": "Programmierung",
+  "tema.Segurança": "Sicherheit",
+  "tema.Dados e IA": "Daten und KI",
 
   "jogo.falhou": "Das Spiel wurde nicht geladen. Lade die Seite neu.",
 

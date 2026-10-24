@@ -48,3 +48,18 @@ test.describe("na primeira visita", () => {
     await expect(page.locator("#app h1")).toHaveText("Pas à pas.");
   });
 });
+
+test("o glossário, o termo do dia e a busca mudam de língua", async ({ page, isMobile }) => {
+  const v = vigiarErros(page);
+  await abrir(page, "glossario");
+  await escolher(page, isMobile, "FR", "Français");
+  await expect(page.locator(".dic-cab h1")).toHaveText("Glossaire");
+  await expect(page.locator(".dic-temas button", { hasText: "Réseaux" })).toBeVisible();
+  await page.locator(".search").fill("dissipateur");
+  await expect(page.locator(".term dt").first()).toHaveText("Dissipateur");
+  await expect(page.locator(".term .tag").first()).toHaveText("Matériel");
+  await page.locator("#abrir-busca").click();
+  await page.locator("#busca-in").fill("pâte thermique");
+  await expect(page.locator("#busca-res a", { hasText: "Pâte thermique" })).toBeVisible();
+  v.semErros();
+});
