@@ -15,25 +15,26 @@
 <div id="dots" hidden></div>
 <div class="shell">
 <header class="top"><div class="topin">
-<a class="logo" href="#/" aria-label="Bancada, início"><svg class="simb" aria-hidden="true"><use href="#harpia"/></svg><span>bancada</span></a>
-<nav class="main" aria-label="Seções"><ul>
-<li><a href="#/biblioteca" data-r="biblioteca">Livros</a></li>
-<li><a href="#/pecas" data-r="pecas">Peças 3D</a></li>
-<li><a href="#/guias" data-r="guias">Guias</a></li>
-<li><a href="#/glossario" data-r="glossario">Glossário</a></li>
-<li><a href="#/trilhas" data-r="trilhas">Trilhas</a></li>
-<li><a href="#/jogo" data-r="jogo">Jogo</a></li>
+<a class="logo" href="#/" aria-label="Bancada, início" data-t-aria="nav.inicio"><svg class="simb" aria-hidden="true"><use href="#harpia"/></svg><span>bancada</span></a>
+<nav class="main" aria-label="Seções" data-t-aria="nav.secoes"><ul>
+<li><a href="#/biblioteca" data-r="biblioteca" data-t="nav.livros">Livros</a></li>
+<li><a href="#/pecas" data-r="pecas" data-t="nav.pecas">Peças 3D</a></li>
+<li><a href="#/guias" data-r="guias" data-t="nav.guias">Guias</a></li>
+<li><a href="#/glossario" data-r="glossario" data-t="nav.glossario">Glossário</a></li>
+<li><a href="#/trilhas" data-r="trilhas" data-t="nav.trilhas">Trilhas</a></li>
+<li><a href="#/jogo" data-r="jogo" data-t="nav.jogo">Jogo</a></li>
 </ul></nav>
-<button type="button" class="icon-btn" id="abrir-busca" aria-label="Buscar no Bancada"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
-<button type="button" class="icon-btn menu-btn" id="abrir-menu" aria-label="Abrir menu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<div class="lingua" id="lingua"></div>
+<button type="button" class="icon-btn" id="abrir-busca" aria-label="Buscar no Bancada" data-t-aria="busca.abrir"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+<button type="button" class="icon-btn menu-btn" id="abrir-menu" aria-label="Abrir menu" data-t-aria="nav.abrirMenu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 </div></header>
-<div class="menu-mob" id="menu-mob" hidden><nav aria-label="Menu"></nav></div>
-<div class="busca-ov" id="busca-ov" hidden role="dialog" aria-label="Buscar no Bancada"><div class="busca-cx"><div class="busca-campo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="busca-in" type="search" placeholder="O que você quer aprender hoje?" autocomplete="off" aria-label="Buscar"><button type="button" class="icon-btn" id="fechar-busca" aria-label="Fechar busca"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="busca-res" id="busca-res"></div></div></div>
+<div class="menu-mob" id="menu-mob" hidden><nav aria-label="Menu" data-t-aria="nav.menu"></nav></div>
+<div class="busca-ov" id="busca-ov" hidden role="dialog" aria-label="Buscar no Bancada" data-t-aria="busca.abrir"><div class="busca-cx"><div class="busca-campo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="busca-in" type="search" placeholder="O que você quer aprender hoje?" autocomplete="off" aria-label="Buscar" data-t-ph="busca.placeholder" data-t-aria="busca.campo"><button type="button" class="icon-btn" id="fechar-busca" aria-label="Fechar busca" data-t-aria="busca.fechar"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="busca-res" id="busca-res"></div></div></div>
 <main id="app"></main>
 <footer><div class="wrap rodape">
-<div class="rod-marca"><a class="logo" href="#/" aria-label="Bancada, início"><svg class="simb" aria-hidden="true"><use href="#harpia"/></svg><span>bancada</span></a><p>Feito para quem estuda informática em português, sem anúncios.</p></div>
-<ul class="rod-links"><li><a href="#/biblioteca">Livros</a></li><li><a href="#/pecas">Peças 3D</a></li><li><a href="#/guias">Guias</a></li><li><a href="#/glossario">Glossário</a></li><li><a href="#/trilhas">Trilhas</a></li><li><a href="#/jogo">Jogo</a></li></ul>
-<p class="rod-lic">Textos próprios em CC BY-SA 4.0. Obras de terceiros mantêm a licença original.</p>
+<div class="rod-marca"><a class="logo" href="#/" aria-label="Bancada, início" data-t-aria="nav.inicio"><svg class="simb" aria-hidden="true"><use href="#harpia"/></svg><span>bancada</span></a><p data-t="rodape.sobre">Feito para quem estuda informática, sem anúncios.</p></div>
+<ul class="rod-links"><li><a href="#/biblioteca" data-t="nav.livros">Livros</a></li><li><a href="#/pecas" data-t="nav.pecas">Peças 3D</a></li><li><a href="#/guias" data-t="nav.guias">Guias</a></li><li><a href="#/glossario" data-t="nav.glossario">Glossário</a></li><li><a href="#/trilhas" data-t="nav.trilhas">Trilhas</a></li><li><a href="#/jogo" data-t="nav.jogo">Jogo</a></li></ul>
+<p class="rod-lic" data-t="rodape.licenca">Textos próprios em CC BY-SA 4.0. Obras de terceiros mantêm a licença original.</p>
 </div></footer>
 </div>
 

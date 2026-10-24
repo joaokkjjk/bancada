@@ -6,7 +6,8 @@ export default defineConfig({
   timeout: 45_000,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
-  use: { baseURL: "http://localhost:4173/", trace: "retain-on-failure" },
+  // o site escolhe a língua pelo navegador; os testes partem do português, e idiomas.spec.js troca de língua
+  use: { baseURL: "http://localhost:4173/", trace: "retain-on-failure", locale: "pt-BR" },
   webServer: {
     command: "npm run build && npx vite preview --port 4173 --strictPort",
     url: "http://localhost:4173/",
