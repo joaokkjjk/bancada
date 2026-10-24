@@ -115,3 +115,42 @@ describe("biblioteca", () => {
     }
   });
 });
+
+/* o glossário das outras línguas é baixado pela página só quando a língua é escolhida (data/glossario/<id>.js) */
+describe("glossário nas 5 línguas", () => {
+  const LINGUAS = ["en", "es", "fr", "de"];
+  for (const l of LINGUAS) {
+    vm.runInContext(readFileSync(join(raiz, "public", "data", "glossario", `${l}.js`), "utf8"), ctx);
+  }
+  const termos = G.map((x) => x[0]);
+
+  it.each(LINGUAS)("%s tem todo termo do português e nenhum a mais", (l) => {
+    const d = ctx.GLOS[l];
+    expect(Object.keys(d).sort()).toEqual([...termos].sort());
+  });
+
+  it.each(LINGUAS)("%s: nome e definição preenchidos, nomes sem repetição", (l) => {
+    const vals = Object.values(ctx.GLOS[l]).filter(Boolean);
+    // só termos que não fazem sentido na língua (ex.: "Bottleneck" em inglês) ficam de fora
+    expect(vals.length).toBeGreaterThan(termos.length - 3);
+    for (const [nome, def] of vals) {
+      expect(nome.trim(), nome).not.toBe("");
+      expect(def.length, nome).toBeGreaterThan(10);
+    }
+    const nomes = vals.map((v) => v[0].toLowerCase());
+    expect(nomes.filter((n, i) => nomes.indexOf(n) !== i)).toEqual([]);
+  });
+
+  it.each(LINGUAS)("%s: as definições foram escritas na língua, não copiadas do português", (l) => {
+    const d = ctx.GLOS[l];
+    const iguais = G.filter((x) => d[x[0]] && d[x[0]][1] === x[1]).map((x) => x[0]);
+    expect(iguais).toEqual([]);
+  });
+
+  it("os temas do glossário têm nome nas 5 línguas", async () => {
+    const { DICIONARIOS } = await import("../../src/i18n/index.js");
+    for (const tema of new Set(G.map((x) => x[2]))) {
+      for (const l of Object.keys(DICIONARIOS)) expect(DICIONARIOS[l][`tema.${tema}`], `${l} ${tema}`).toBeTruthy();
+    }
+  });
+});

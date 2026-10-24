@@ -751,7 +751,7 @@ function vitrine(cont) {
     .forEach((x) => {
       capas.appendChild(cover(x));
     });
-  var termo = G[Math.floor(Date.now() / 864e5) % G.length];
+  var termo = termoDoDia();
   var um = ultimo("modulo"),
     tk = um && TRN[um.k] ? um.k : ORDEM[0],
     tn = um && TRN[um.k] ? Math.min(um.n, TRN[tk].modulos.length) : 1,
@@ -836,7 +836,7 @@ function indice() {
   GU.forEach((x) => {
     r.push({ g: "guias", i: "guias", t: x.n, s: x.d, href: "#/guias" });
   });
-  G.forEach((x) => {
+  glos().forEach((x) => {
     r.push({ g: "glossario", i: "glossario", t: x[0], s: x[1], href: "#/glossario/" + encodeURIComponent(x[0]) });
   });
   Object.keys(TRN).forEach((k) => {
@@ -1097,9 +1097,31 @@ function aplicarTextos() {
 function trocarLingua(id) {
   if (id === lingua()) return;
   definirLingua(id);
-  INDICE = null;
   aplicarTextos();
-  route();
+  carregarGlossario().then(() => {
+    INDICE = null;
+    route();
+  });
+}
+/* glossário na língua escolhida: o português vem de data/glossario.js; as outras línguas ficam em
+   data/glossario/<id>.js, baixadas só quando escolhidas. Cada termo: [nome, definição, tema, nome em português] */
+var GLOS_CACHE = {};
+function glos() {
+  var id = lingua(),
+    d = id !== "pt" && window.GLOS && GLOS[id];
+  if (!d) return G;
+  if (!GLOS_CACHE[id]) GLOS_CACHE[id] = G.filter((x) => d[x[0]]).map((x) => [d[x[0]][0], d[x[0]][1], x[2], x[0]]);
+  return GLOS_CACHE[id];
+}
+function carregarGlossario() {
+  var id = lingua();
+  if (id === "pt" || (window.GLOS && GLOS[id])) return Promise.resolve();
+  return carregarScript("data/glossario/" + id + ".js").catch(() => {});
+}
+/* o termo do dia é o mesmo conceito em todas as línguas */
+function termoDoDia() {
+  var gl = glos();
+  return gl[Math.floor(Date.now() / 864e5) % gl.length];
 }
 aplicarTextos();
 
@@ -3322,17 +3344,20 @@ function vGlos(q0) {
   q.placeholder = t("glos.placeholder");
   var lq = h("label", "oculto-leitor", t("glos.buscar"));
   lq.htmlFor = "q";
-  G.forEach((t) => {
+  var GL = glos()
+    .slice()
+    .sort((a, b) => a[0].localeCompare(b[0], lingua()));
+  GL.forEach((t) => {
     if (cats.indexOf(t[2]) < 0) cats.push(t[2]);
     ct[t[2]] = (ct[t[2]] || 0) + 1;
   });
   cats.sort((a, b) => ct[b] - ct[a]);
   var letras = [];
-  G.forEach((t) => {
+  GL.forEach((t) => {
     var L = letraDe(t[0]);
     if (letras.indexOf(L) < 0) letras.push(L);
   });
-  letras.sort((a, b) => a.localeCompare(b, "pt-BR"));
+  letras.sort((a, b) => a.localeCompare(b, lingua()));
   /* barra de letras: leva à letra e marca a que está na tela */
   var nav = h("nav", "dic-letras"),
     bL = {};
@@ -3379,8 +3404,8 @@ function vGlos(q0) {
   };
   window.addEventListener("scroll", aoRolar, { passive: true });
   limpar.push(() => window.removeEventListener("scroll", aoRolar));
-  function item(t) {
-    return h("div", "term", [h("dt", null, t[0]), h("dd", null, [t[1], " ", h("span", "tag", t[2])])]);
+  function item(x) {
+    return h("div", "term", [h("dt", null, x[0]), h("dd", null, [x[1], " ", h("span", "tag", tv("tema", x[2]))])]);
   }
   function d() {
     var s = q.value.trim().toLowerCase();
@@ -3389,7 +3414,7 @@ function vGlos(q0) {
     temas.querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(b.dataset.v === cat));
     });
-    var r = G.filter((t) => (!cat || t[2] === cat) && (!s || (t[0] + " " + t[1]).toLowerCase().indexOf(s) > -1));
+    var r = GL.filter((t) => (!cat || t[2] === cat) && (!s || (t[0] + " " + t[1]).toLowerCase().indexOf(s) > -1));
     cn.textContent = t("glos.termos", { n: r.length });
     if (!r.length) {
       lista.appendChild(h("p", "txt", t("glos.nada")));
@@ -3412,10 +3437,10 @@ function vGlos(q0) {
     requestAnimationFrame(marcarVisivel);
   }
   /* termo do dia e filtro por tema */
-  var termo = G[Math.floor(Date.now() / 864e5) % G.length];
+  var termo = termoDoDia();
   var temas = h("div", "dic-temas");
   cats.forEach((c) => {
-    var b = h("button", "chip", [c, " ", h("span", "ct", String(ct[c]))]);
+    var b = h("button", "chip", [tv("tema", c), " ", h("span", "ct", String(ct[c]))]);
     b.type = "button";
     b.dataset.v = c;
     b.onclick = () => {
@@ -4805,4 +4830,5 @@ window.addEventListener("hashchange", () => {
   app.classList.add("saindo");
   trocando = setTimeout(route, 150);
 });
-route();
+/* sem esperar o glossário de outra língua, o início mostraria o termo do dia em português por um instante */
+carregarGlossario().then(route);

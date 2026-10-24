@@ -171,6 +171,12 @@ export default {
   "glos.nada": "Aucun terme trouvé. Essayez un autre mot ou un autre thème.",
   "glos.termos": "{n} terme|{n} termes",
   "glos.porTema": "PAR THÈME",
+  "tema.Hardware": "Matériel",
+  "tema.Software": "Logiciel",
+  "tema.Redes": "Réseaux",
+  "tema.Programação": "Programmation",
+  "tema.Segurança": "Sécurité",
+  "tema.Dados e IA": "Données et IA",
 
   "jogo.falhou": "Le jeu ne s’est pas chargé. Rechargez la page.",
 
