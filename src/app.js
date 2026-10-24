@@ -4548,7 +4548,6 @@ function route() {
     else a.removeAttribute("aria-current");
   });
   window.scrollTo({ top: 0, behavior: "instant" });
-  contar(app);
   revelarAoRolar(app);
 }
 /* sem suporte a animação ligada à rolagem: blocos abaixo da dobra entram em foco quando chegam à tela */
@@ -4575,23 +4574,6 @@ function revelarAoRolar(raiz) {
     o.observe(el);
   });
   limpar.push(() => o.disconnect());
-}
-/* números das categorias sobem de zero quando a página abre */
-function contar(raiz) {
-  if (calmo) return;
-  raiz.querySelectorAll(".cat em").forEach((em) => {
-    var m = em.textContent.match(/^(\d+)(.*)$/);
-    if (!m) return;
-    var fim = +m[1],
-      resto = m[2],
-      t0 = performance.now();
-    (function passo(t) {
-      var k = Math.min(1, (t - t0) / 900),
-        v = Math.round(fim * (1 - (1 - k) ** 3));
-      em.textContent = v + resto;
-      if (k < 1) requestAnimationFrame(passo);
-    })(t0);
-  });
 }
 /* cabeçalho compacta ao rolar; barra fina no topo durante a troca de aba */
 var topo = document.querySelector("header.top"),
