@@ -3783,23 +3783,27 @@ function bookCard(b) {
 }
 /* biblioteca como estante: um livro em destaque, busca compacta e prateleiras por área */
 function vBiblioteca(foco) {
-  var all = todos(),
+  /* os livros da língua escolhida vêm primeiro em cada prateleira (o sort é estável) */
+  var L = lingua().toUpperCase(),
+    all = todos().sort((a, b) => (a.i === L ? 0 : 1) - (b.i === L ? 0 : 1)),
     nv = "",
     fm = "",
+    lg = "",
     cont = {};
   all.forEach((b) => {
     cont[b.area] = (cont[b.area] || 0) + 1;
   });
   var areas = Object.keys(cont).sort((a, b) => cont[b] - cont[a]);
-  /* destaque: o primeiro livro do Bancada, com o resumo guardado no livro */
-  var dest = all.filter((b) => b.proprio)[0] || all[0],
+  /* destaque: o primeiro livro do Bancada; em outra língua, o primeiro livro nela */
+  var dest = (L === "PT" ? all.filter((b) => b.proprio)[0] : all.filter((b) => b.i === L)[0]) || all[0],
     orig = LIVROS.filter((l) => "#/ler/" + l.id + "/1" === dest.href)[0] || {};
   var destaque = h("section", "bib-destaque", [
     cover(dest, dest.href),
     h("div", "bd-txt", [
       h("span", "vt-k", t("bib.destaque", { x: tv("comum.nivel", dest.nivel || "").toUpperCase() })),
       h("h2", null, dest.t),
-      orig.resumo ? h("p", null, orig.resumo) : null,
+      // o resumo está em português: nas outras línguas, só título e ações
+      orig.resumo && L === "PT" ? h("p", null, orig.resumo) : null,
       h("div", "ih-acoes", [
         ln(dest.href, "bt-pri", t("bib.lerAgora")),
         ln("#/biblioteca/buscar", "bt-sec", t("bib.procurarOutro")),
@@ -3853,6 +3857,18 @@ function vBiblioteca(foco) {
           fm = v;
         },
       ),
+      seletor(
+        "bib-lingua",
+        t("bib.lingua"),
+        [["", t("bib.todasLinguas")]].concat(
+          LINGUAS.map((l) => l.curto)
+            .filter((x) => all.some((b) => b.i === x))
+            .map((x) => [x, t("idioma." + x)]),
+        ),
+        (v) => {
+          lg = v;
+        },
+      ),
     ]),
   ]);
   var atalhos = h(
@@ -3876,7 +3892,7 @@ function vBiblioteca(foco) {
   function d() {
     var s = q.value.trim().toLowerCase();
     corpo.textContent = "";
-    if (!s && !nv && !fm) {
+    if (!s && !nv && !fm && !lg) {
       ct.textContent = t("bib.livrosAreas", { l: t("comum.livros", { n: all.length }), a: areas.length });
       atalhos.hidden = false;
       areas.forEach((a, k) => {
@@ -3900,6 +3916,7 @@ function vBiblioteca(foco) {
       (b) =>
         (!nv || b.nivel === nv) &&
         (!fm || b.formato === fm) &&
+        (!lg || b.i === lg) &&
         (!s ||
           (b.t + " " + b.a + " " + b.tema + " " + b.area + " " + tv("area", b.area)).toLowerCase().indexOf(s) > -1),
     );
@@ -3944,7 +3961,22 @@ function vLer(id, n) {
   var b = LIVROS.filter((x) => x.id === id)[0];
   if (!b) return null;
   n = Math.min(Math.max(1, +n || 1), b.caps.length);
-  var c = b.caps[n - 1];
+  var c = b.caps[n - 1],
+    html = c.html;
+  /* livros das outras línguas: os capítulos ficam em data/livros/textos/<id>.js, baixado ao abrir o livro */
+  var carregando = html == null && !(window.LIVROS_TEXTO && LIVROS_TEXTO[id]);
+  if (html == null && !carregando) html = LIVROS_TEXTO[id][n - 1];
+  if (carregando) {
+    var rota = location.hash;
+    carregarScript(b.textos)
+      .then(() => {
+        if (location.hash === rota) route();
+      })
+      .catch(() => {
+        body.textContent = t("ler.falhouTexto");
+        body.removeAttribute("aria-busy");
+      });
+  }
   try {
     var m = JSON.parse(localStorage.getItem(POS) || "{}");
     m[id] = n;
@@ -3966,7 +3998,10 @@ function vLer(id, n) {
     ol,
   ]);
   var body = h("div", "body");
-  body.innerHTML = c.html;
+  if (carregando) {
+    body.setAttribute("aria-busy", "true");
+    body.appendChild(h("p", "txt", t("ler.carregando")));
+  } else body.innerHTML = html;
   var art = h("article", "prose", [
     h("div", "chap", t("ler.capituloDe", { n: n, t: b.caps.length })),
     h("h1", null, c.t),
@@ -3990,7 +4025,11 @@ function vLer(id, n) {
       ? h("p", "credit", t("ler.creditoProprio"))
       : h("p", "credit", [
           t("ler.creditoWiki1"),
-          ln(b.fonte + "/" + encodeURIComponent(c.t.replace(/ /g, "_")), "", "“" + c.t + "”"),
+          ln(
+            b.fonte + (b.sep || "/").replace(/ /g, "_") + encodeURIComponent(c.t.replace(/ /g, "_")),
+            "",
+            "“" + c.t + "”",
+          ),
           t("ler.creditoWiki2"),
           ln(b.fonte, "", b.t),
           t("ler.creditoWiki3", { w: b.projeto || "Wikilivros", x: b.importado }),

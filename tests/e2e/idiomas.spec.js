@@ -63,3 +63,23 @@ test("o glossário, o termo do dia e a busca mudam de língua", async ({ page, i
   await expect(page.locator("#busca-res a", { hasText: "Pâte thermique" })).toBeVisible();
   v.semErros();
 });
+
+test("a biblioteca mostra livros na língua escolhida e lê o texto dentro do site", async ({ page, isMobile }) => {
+  const v = vigiarErros(page);
+  await abrir(page, "biblioteca");
+  await escolher(page, isMobile, "ES", "Español");
+  // o destaque e o começo de cada prateleira são da língua escolhida
+  await expect(page.locator(".bib-destaque .bt-pri")).toHaveAttribute("href", /py4e-es|progit-es|programacion-en-c/);
+  await page.locator("#bib-lingua").selectOption("DE");
+  await expect(page.locator(".books .bt", { hasText: "C-Programmierung" })).toBeVisible();
+  await expect(page.locator(".books .bt", { hasText: "Python für alle" })).toBeVisible();
+  // o texto do livro em alemão é baixado só ao abrir
+  await page.locator(".books .bt", { hasText: "C-Programmierung" }).click();
+  await expect(page.locator(".prose .body")).not.toHaveAttribute("aria-busy", "true");
+  await expect(page.locator(".prose .body")).toContainText(/\S{20}/);
+  await expect(page.locator(".prose .credit a").first()).toHaveAttribute(
+    "href",
+    /de\.wikibooks\.org\/wiki\/C-Programmierung:_/,
+  );
+  v.semErros();
+});

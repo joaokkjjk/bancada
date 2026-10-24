@@ -232,5 +232,82 @@
     "i": "PT",
     "fonte": "https://www.livrosabertos.sibi.usp.br/portaldelivrosUSP/catalog/book/650",
     "pdf": "https://www.livrosabertos.sibi.usp.br/portaldelivrosUSP/catalog/download/650/579/2181?inline=1"
+  },
+  {
+    "id": "py4e-en",
+    "t": "Python for Everybody",
+    "a": "Charles Severance",
+    "nivel": "Básico",
+    "area": "Programação",
+    "l": "CC BY-NC-SA 3.0",
+    "i": "EN",
+    "fonte": "https://www.py4e.com/book",
+    "pdf": "https://do1.dr-chuck.com/pythonlearn/EN_us/pythonlearn.pdf"
+  },
+  {
+    "id": "py4e-es",
+    "t": "Python para todos",
+    "a": "Charles Severance",
+    "nivel": "Básico",
+    "area": "Programação",
+    "l": "CC BY-NC-SA 3.0",
+    "i": "ES",
+    "fonte": "https://es.py4e.com/book",
+    "pdf": "https://do1.dr-chuck.com/pythonlearn/ES_es/pythonlearn.pdf"
+  },
+  {
+    "id": "py4e-de",
+    "t": "Python für alle",
+    "a": "Charles Severance",
+    "nivel": "Básico",
+    "area": "Programação",
+    "l": "CC BY-NC-SA 3.0",
+    "i": "DE",
+    "fonte": "https://www.py4e.com/book",
+    "pdf": "https://do1.dr-chuck.com/pythonlearn/DE_de/pythonlearn.pdf"
+  },
+  {
+    "id": "progit-es",
+    "t": "Pro Git",
+    "a": "Scott Chacon, Ben Straub",
+    "nivel": "Intermediário",
+    "area": "Engenharia de software",
+    "l": "CC BY-NC-SA 3.0",
+    "i": "ES",
+    "fonte": "https://git-scm.com/book/es/v2",
+    "pdf": "https://github.com/progit/progit2-es/releases/download/2.1.23/progit.pdf"
+  },
+  {
+    "id": "progit-fr",
+    "t": "Pro Git",
+    "a": "Scott Chacon, Ben Straub",
+    "nivel": "Intermediário",
+    "area": "Engenharia de software",
+    "l": "CC BY-NC-SA 3.0",
+    "i": "FR",
+    "fonte": "https://git-scm.com/book/fr/v2",
+    "pdf": "https://github.com/progit/progit2-fr/releases/download/2.1.78/progit.pdf"
+  },
+  {
+    "id": "swinnen-python3",
+    "t": "Apprendre à programmer avec Python 3",
+    "a": "Gérard Swinnen",
+    "nivel": "Básico",
+    "area": "Programação",
+    "l": "CC BY-NC-SA 2.0 FR",
+    "i": "FR",
+    "fonte": "https://inforef.be/swi/python.htm",
+    "pdf": "https://inforef.be/swi/download/apprendre_python3_5.pdf"
+  },
+  {
+    "id": "c-en-20-heures",
+    "t": "Le C en 20 heures",
+    "a": "Eric Berthomier, Daniel Schang",
+    "nivel": "Básico",
+    "area": "Programação",
+    "l": "CC BY-SA",
+    "i": "FR",
+    "fonte": "https://archives.framabook.org/le-c-en-20-heures-2/",
+    "pdf": "https://archives.framabook.org/docs/c20h/C20H_integrale_creative-commons-by-saV2_AOUT2013.pdf"
   }
 ]
