@@ -5,7 +5,7 @@ export default defineConfig({
     include: ["tests/unit/**/*.test.js", "tests/integracao/**/*.test.js"],
     coverage: {
       provider: "v8",
-      include: ["src/logica/**"],
+      include: ["src/logica/**", "src/i18n/index.js"],
       reporter: ["text", "lcov", "json-summary"],
       thresholds: { lines: 95, functions: 100, branches: 90 },
     },

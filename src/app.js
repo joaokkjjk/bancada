@@ -1,5 +1,6 @@
 /* Interface do Bancada: rotas, telas e componentes. A lógica pura fica em src/logica. */
 import "./jogo.js";
+import { definirLingua, LINGUAS, lingua, t, tv } from "./i18n/index.js";
 import {
   dividirTokens,
   especificidade,
@@ -46,35 +47,28 @@ function svg(s) {
   d.innerHTML = s;
   return d.firstChild;
 }
-var ICO_SEC = {
-  Biblioteca: "livros",
-  Peças: "pecas",
-  "Guias práticos": "guias",
-  Glossário: "glossario",
-  Trilhas: "trilhas",
-  Trilha: "trilhas",
-  "Banco de questões": "trilhas",
-};
-function head(eb, t, l) {
+function head(eb, tt, l, ic) {
   var e = null;
   if (eb) {
     e = h("div", "eyebrow", eb);
-    var ic = ICO_SEC[eb] || (/^Peça/.test(eb) ? "pecas" : null);
     if (ic) {
       var sp = h("span");
       sp.innerHTML = ICO[ic];
       e.insertBefore(sp.firstChild, e.firstChild);
     }
   }
-  return h("div", "pg-head", [e, h("h1", null, t), l ? h("p", "lead", l) : null]);
+  return h("div", "pg-head", [e, h("h1", null, tt), l ? h("p", "lead", l) : null]);
 }
-function page(eb, t, l, k) {
-  return h("div", "wrap pg", [head(eb, t, l)].concat(k));
+function page(eb, tt, l, k, ic) {
+  return h("div", "wrap pg", [head(eb, tt, l, ic)].concat(k));
 }
 function chipRow(box, items, get, set, counts) {
   var bs = [];
   items.forEach((v) => {
-    var b = h("button", "chip", [v || "Todos", counts ? h("span", "ct", String(counts[v] || 0)) : null]);
+    var b = h("button", "chip", [
+      v ? tv(["comum.nivel", "area", "formato"], v) : t("comum.todos"),
+      counts ? h("span", "ct", String(counts[v] || 0)) : null,
+    ]);
     b.onclick = () => {
       set(v);
     };
@@ -166,7 +160,7 @@ function carregar3D() {
 function viewer3d(a, mini, op) {
   if (window.THREE && window.MODELOS3D) return montarViewer3d(a, mini, op);
   var ph = h("div", (mini ? "v3d-stage" : "v3d") + " esqueleto-3d", [
-    h("div", "esq-3d", [h("span", "esq-txt", "Carregando o modelo 3D…"), h("div", "barra-ind", [h("i")])]),
+    h("div", "esq-3d", [h("span", "esq-txt", t("v3d.carregando")), h("div", "barra-ind", [h("i")])]),
   ]);
   ph.setAttribute("aria-busy", "true");
   var cancelado = false,
@@ -189,7 +183,7 @@ function viewer3d(a, mini, op) {
       }
       ph.textContent = "";
       ph.removeAttribute("aria-busy");
-      ph.appendChild(h("div", "v3d-fallback", "O 3D não carregou. Confira a conexão e recarregue a página."));
+      ph.appendChild(h("div", "v3d-fallback", t("v3d.falhou")));
     });
   return ph;
 }
@@ -199,9 +193,7 @@ function montarViewer3d(a, mini, op) {
     PT = op.pontos || a.pontos || {};
   var stage = h("div", "v3d-stage");
   if (!window.MODELOS3D || !MODELOS3D[mid]) {
-    stage.appendChild(
-      h("div", "v3d-fallback", "O modelo 3D não carregou neste navegador. O texto sobre a peça continua abaixo."),
-    );
+    stage.appendChild(h("div", "v3d-fallback", t("v3d.semModelo")));
     return mini ? stage : h("div", "v3d", [stage]);
   }
   var T = THREE,
@@ -209,7 +201,7 @@ function montarViewer3d(a, mini, op) {
   try {
     R = new T.WebGLRenderer({ antialias: true, alpha: true });
   } catch (e) {
-    stage.appendChild(h("div", "v3d-fallback", "Seu navegador não ativou o 3D (WebGL)."));
+    stage.appendChild(h("div", "v3d-fallback", t("v3d.semWebgl")));
     return mini ? stage : h("div", "v3d", [stage]);
   }
   R.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -223,7 +215,7 @@ function montarViewer3d(a, mini, op) {
   var DIST = op.distancia || (mini ? 2.1 : 1.9);
   cam.position.copy(dir.multiplyScalar(size * DIST));
   stage.appendChild(R.domElement);
-  R.domElement.setAttribute("aria-label", "Modelo 3D: " + a.n + ". Arraste para girar.");
+  R.domElement.setAttribute("aria-label", t("v3d.rotulo", { x: a.n }));
   R.domElement.setAttribute("role", "img");
   var ctl = new T.OrbitControls(cam, R.domElement);
   ctl.enableDamping = true;
@@ -429,13 +421,13 @@ function montarViewer3d(a, mini, op) {
 
   /* ferramentas e painel */
   var tools = h("div", "v3d-tools"),
-    rb = h("button", null, "Girar sozinho");
+    rb = h("button", null, t("v3d.girar"));
   rb.setAttribute("aria-pressed", String(ctl.autoRotate));
   rb.onclick = () => {
     ctl.autoRotate = !ctl.autoRotate;
     rb.setAttribute("aria-pressed", String(ctl.autoRotate));
   };
-  var rs = h("button", null, "Recentralizar");
+  var rs = h("button", null, t("v3d.centralizar"));
   rs.onclick = () => {
     cam.position.copy(
       new T.Vector3()
@@ -448,7 +440,7 @@ function montarViewer3d(a, mini, op) {
   tools.appendChild(rb);
   tools.appendChild(rs);
   if (built.dentro) {
-    var dn = h("button", null, "Ver por dentro");
+    var dn = h("button", null, t("v3d.dentro"));
     dn.setAttribute("aria-pressed", "false");
     dn.onclick = () => {
       dentro = !dentro;
@@ -460,11 +452,11 @@ function montarViewer3d(a, mini, op) {
     tools.appendChild(dn);
   }
   stage.appendChild(tools);
-  stage.appendChild(h("div", "v3d-help", "Arraste · role para aproximar"));
+  stage.appendChild(h("div", "v3d-help", t("v3d.ajuda")));
   info = h("div", "v3d-info", [
-    h("div", "n", keys.length + " partes para explorar"),
-    h("h3", null, "Toque num número"),
-    h("p", null, "Ou clique direto na peça. Cada parte tem uma explicação curta."),
+    h("div", "n", t("v3d.partes", { n: keys.length })),
+    h("h3", null, t("v3d.toque")),
+    h("p", null, t("v3d.cliqueDireto")),
   ]);
   var ul = h("ul", "v3d-list");
   keys.forEach((k, i) => {
@@ -648,7 +640,7 @@ function setDots(n, cur, fn) {
   for (var i = 0; i < n; i++) {
     ((i) => {
       var d = h("button", "dot");
-      d.setAttribute("aria-label", "Ir para " + (i + 1));
+      d.setAttribute("aria-label", t("comum.irPara", { n: i + 1 }));
       d.setAttribute("aria-current", String(i === cur));
       d.onclick = () => {
         fn(i);
@@ -673,47 +665,47 @@ var ICO = {
   jogo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7.5h10a4.5 4.5 0 0 1 4.4 5.5l-1 4.4a2.3 2.3 0 0 1-4 .9L15 16.5H9l-1.4 1.8a2.3 2.3 0 0 1-4-.9l-1-4.4A4.5 4.5 0 0 1 7 7.5z"/><path d="M8 10.5v3M6.5 12h3M15.5 11h.01M17.5 13h.01"/></svg>',
   busca:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+  lingua:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>',
 };
+/* [rota, chave do nome, chave da descrição, ícone] */
 var SECOES = [
-  ["biblioteca", "Livros", "Conhecimento para consultar e aprender.", "livros"],
-  ["pecas", "Peças 3D", "Modelos e referências para seus projetos.", "pecas"],
-  ["guias", "Guias", "Tutoriais diretos e práticos.", "guias"],
-  ["glossario", "Glossário", "Termos técnicos explicados em português.", "glossario"],
-  ["trilhas", "Trilhas", "Do básico ao avançado, com questões.", "trilhas"],
-  ["jogo", "Gargalo", "Jogo: monte um PC e vença os chefes.", "jogo"],
+  ["biblioteca", "nav.livros", "secao.livros", "livros"],
+  ["pecas", "nav.pecas", "secao.pecas", "pecas"],
+  ["guias", "nav.guias", "secao.guias", "guias"],
+  ["glossario", "nav.glossario", "secao.glossario", "glossario"],
+  ["trilhas", "nav.trilhas", "secao.trilhas", "trilhas"],
+  ["jogo", "secao.gargalo", "secao.jogo", "jogo"],
 ];
 
 /* ---------- início ---------- */
 function vHome() {
   var total = LIVROS.length + PDFS.length,
     cont = {
-      biblioteca: total + " livros",
-      pecas:
-        P.length +
-        " peças, " +
-        (window.VARIANTES ? Object.keys(VARIANTES).reduce((a, k) => a + VARIANTES[k].lista.length, 0) : P.length) +
-        " variantes",
-      guias: GU.length + " guias",
-      glossario: G.length + " termos",
+      biblioteca: t("comum.livros", { n: total }),
+      pecas: t("inicio.pecasN", {
+        p: P.length,
+        v: window.VARIANTES ? Object.keys(VARIANTES).reduce((a, k) => a + VARIANTES[k].lista.length, 0) : P.length,
+      }),
     };
   var txt = h("div", "ih-txt", [
-    h("span", "ih-selo", "HARDWARE · SOFTWARE · PROGRAMAÇÃO"),
-    h("h1", null, [h("span", "l1", "Toda a informática"), h("span", "l2", "num lugar só.")]),
-    h("p", "txt", "Livros abertos, peças em 3D, guias e trilhas em português. Grátis, para sempre."),
+    h("span", "ih-selo", t("inicio.selo")),
+    h("h1", null, [h("span", "l1", t("inicio.titulo1")), h("span", "l2", t("inicio.titulo2"))]),
+    h("p", "txt", t("inicio.texto")),
     h("div", "ih-acoes", [
-      ln("#/trilhas", "bt-pri", "Começar uma trilha"),
-      ln("#/biblioteca", "bt-sec", "Ver a biblioteca"),
+      ln("#/trilhas", "bt-pri", t("inicio.comecarTrilha")),
+      ln("#/biblioteca", "bt-sec", t("inicio.verBiblioteca")),
     ]),
   ]);
   /* imagem do cooler da identidade visual; acompanha levemente o mouse. Fica no celular e se o 3D falhar */
   function imagemCooler() {
     var foto = h("img");
     foto.src = "marca/cooler.webp";
-    foto.alt = "Water cooler preto com o símbolo da harpia na bomba e na ventoinha";
+    foto.alt = t("inicio.coolerAlt");
     foto.width = 1400;
     foto.height = 923;
     var palco = ln("#/pecas/refrigeracao", "ih-img", [foto]);
-    palco.setAttribute("aria-label", "Ver a refrigeração em 3D");
+    palco.setAttribute("aria-label", t("inicio.verRefrigeracao"));
     palco.addEventListener("pointermove", (e) => {
       // só com mouse e sem preferência por movimento reduzido: é um efeito decorativo
       if (calmo || e.pointerType !== "mouse") return;
@@ -740,7 +732,7 @@ function vHome() {
         camera: [4, 2.6, 5],
         erro: imagemCooler,
       }),
-      h("p", "hint", [ln("#/pecas/cpu", null, "Ver o processador por dentro →")]),
+      h("p", "hint", [ln("#/pecas/cpu", null, t("inicio.verProcessador"))]),
     ]);
   } else palco = imagemCooler();
   return h("div", "inicio", [h("section", "wrap inicio-hero", [txt, palco]), h("section", "wrap", [vitrine(cont)])]);
@@ -771,36 +763,36 @@ function vitrine(cont) {
   barra.firstChild.style.width = (qs.length ? (feitas / qs.length) * 100 : 0) + "%";
   return h("div", "vitrine", [
     ln(href, "vt vt-ler", [
-      h("span", "vt-k", lv ? "CONTINUE LENDO" : "COMECE A LER"),
+      h("span", "vt-k", lv ? t("inicio.continueLendo") : t("inicio.comeceLer")),
       capas,
       h("div", null, [
         h("b", null, livro.t),
         h(
           "span",
           null,
-          lv ? "Volte de onde parou · " + cont.biblioteca + " no site" : livro.a + " · " + cont.biblioteca + " no site",
+          lv ? t("inicio.volteOnde", { x: cont.biblioteca }) : t("inicio.noSite", { a: livro.a, x: cont.biblioteca }),
         ),
       ]),
     ]),
     ln("#/glossario/" + encodeURIComponent(termo[0]), "vt", [
-      h("span", "vt-k", "TERMO DO DIA"),
+      h("span", "vt-k", t("inicio.termoDia")),
       h("div", null, [h("b", null, termo[0]), h("p", null, termo[1])]),
     ]),
     ln("#/trilhas/" + tk + "/" + tn, "vt", [
-      h("span", "vt-k", um ? "CONTINUE A TRILHA" : "TRILHA PARA COMEÇAR"),
+      h("span", "vt-k", um ? t("inicio.continueTrilha") : t("inicio.trilhaComecar")),
       h("div", null, [
         h("b", null, TRN[tk].n),
-        h("span", null, "Módulo " + tn + " de " + TRN[tk].modulos.length + " · " + mod.n),
+        h("span", null, t("inicio.moduloDe", { n: tn, t: TRN[tk].modulos.length, x: mod.n })),
         barra,
       ]),
     ]),
     ln("#/pecas", "vt", [
-      h("span", "vt-k", "PEÇAS EM 3D"),
-      h("div", null, [h("b", null, cont.pecas), h("span", null, "Gire, abra e compare")]),
+      h("span", "vt-k", t("inicio.pecas3d")),
+      h("div", null, [h("b", null, cont.pecas), h("span", null, t("inicio.gireAbra"))]),
     ]),
     ln("#/jogo", "vt vt-claro", [
-      h("span", "vt-k", "JOGO"),
-      h("div", null, [h("b", null, "Gargalo"), h("span", null, "Monte um PC e vença os chefes")]),
+      h("span", "vt-k", t("inicio.jogo")),
+      h("div", null, [h("b", null, t("secao.gargalo")), h("span", null, t("inicio.jogoTexto"))]),
     ]),
   ]);
 }
@@ -827,24 +819,30 @@ function indice() {
   if (INDICE) return INDICE;
   var r = [];
   todos().forEach((b) => {
-    r.push({ g: "Livros", i: "livros", t: b.t, s: b.a + " · " + b.formato + " · " + b.nivel, href: b.href });
+    r.push({
+      g: "livros",
+      i: "livros",
+      t: b.t,
+      s: b.a + " · " + tv("formato", b.formato) + " · " + tv("comum.nivel", b.nivel),
+      href: b.href,
+    });
   });
   P.forEach((a) => {
-    r.push({ g: "Peças 3D", i: "pecas", t: a.n, s: a.r, href: "#/pecas/" + a.id });
+    r.push({ g: "pecas", i: "pecas", t: a.n, s: a.r, href: "#/pecas/" + a.id });
     ((window.VARIANTES || {})[a.id] || { lista: [] }).lista.forEach((v) => {
-      r.push({ g: "Peças 3D", i: "pecas", t: a.n + ": " + v.n, s: v.d, href: "#/pecas/" + a.id });
+      r.push({ g: "pecas", i: "pecas", t: a.n + ": " + v.n, s: v.d, href: "#/pecas/" + a.id });
     });
   });
   GU.forEach((x) => {
-    r.push({ g: "Guias", i: "guias", t: x.n, s: x.d, href: "#/guias" });
+    r.push({ g: "guias", i: "guias", t: x.n, s: x.d, href: "#/guias" });
   });
   G.forEach((x) => {
-    r.push({ g: "Glossário", i: "glossario", t: x[0], s: x[1], href: "#/glossario/" + encodeURIComponent(x[0]) });
+    r.push({ g: "glossario", i: "glossario", t: x[0], s: x[1], href: "#/glossario/" + encodeURIComponent(x[0]) });
   });
   Object.keys(TRN).forEach((k) => {
     TRN[k].modulos.forEach((m, i) => {
       r.push({
-        g: "Trilhas",
+        g: "trilhas",
         i: "trilhas",
         t: TRN[k].n + ": " + m.n,
         s: m.resumo,
@@ -906,38 +904,38 @@ function mostrarBusca() {
   bres.textContent = "";
   if (!q) {
     var sug = h("div");
-    sug.appendChild(h("h3", null, "Sugestões"));
-    ["memória ram", "cache", "python", "placa-mãe", "ssd nvme", "redes"].forEach((t) => {
-      var a = h("a", null, [h("i"), h("b", null, t), h("span", null, "Buscar por " + t)]);
-      a.href = "#";
-      a.querySelector("i").outerHTML = ICO.busca;
-      a.onclick = (e) => {
-        e.preventDefault();
-        bin.value = t;
-        mostrarBusca();
-      };
-      sug.appendChild(a);
-    });
+    sug.appendChild(h("h3", null, t("busca.sugestoes")));
+    t("busca.sugestaoLista")
+      .split(";")
+      .forEach((x) => {
+        var a = h("a", null, [h("i"), h("b", null, x), h("span", null, t("busca.buscarPor", { x: x }))]);
+        a.href = "#";
+        a.querySelector("i").outerHTML = ICO.busca;
+        a.onclick = (e) => {
+          e.preventDefault();
+          bin.value = x;
+          mostrarBusca();
+        };
+        sug.appendChild(a);
+      });
     bres.appendChild(sug);
     return;
   }
   var r = buscar(q);
   if (!r.length) {
-    bres.appendChild(
-      h("p", "busca-vazia", "Nada encontrado para “" + q + "”. Tente outra palavra, como cache, Linux ou fonte."),
-    );
+    bres.appendChild(h("p", "busca-vazia", t("busca.nada", { x: q })));
     return;
   }
   var grupos = {};
   r.forEach((x) => {
     (grupos[x.g] = grupos[x.g] || []).push(x);
   });
-  ["Glossário", "Peças 3D", "Livros", "Trilhas", "Guias"].forEach((gn) => {
+  ["glossario", "pecas", "livros", "trilhas", "guias"].forEach((gn) => {
     var lst = grupos[gn];
     if (!lst) return;
     var sec = h("div");
-    sec.appendChild(h("h3", null, gn + " · " + lst.length));
-    lst.slice(0, gn === "Glossário" ? 4 : 5).forEach((x) => {
+    sec.appendChild(h("h3", null, t("busca.grupo." + gn) + " · " + lst.length));
+    lst.slice(0, gn === "glossario" ? 4 : 5).forEach((x) => {
       var a = ln(x.href, null, [h("i"), h("b", null, x.t), h("span", null, x.s)]);
       a.querySelector("i").outerHTML = ICO[x.i];
       a.onclick = () => {
@@ -969,6 +967,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     if (!bov.hidden) fecharBusca(true);
     fecharMenu(true);
+    fecharLingua();
   } else if (
     e.key === "/" &&
     bov.hidden &&
@@ -983,13 +982,18 @@ document.addEventListener("keydown", (e) => {
 /* ---------- menu do celular ---------- */
 var mm = document.getElementById("menu-mob"),
   mb = document.getElementById("abrir-menu");
-SECOES.forEach((x) => {
-  var a = ln("#/" + x[0], null, [h("i"), h("b", null, x[1]), h("span", null, x[2])]);
-  a.dataset.r = x[0];
-  a.querySelector("i").outerHTML = ICO[x[3]];
-  a.onclick = fecharMenu;
-  mm.firstChild.appendChild(a);
-});
+function montarMenu() {
+  var nv = mm.firstChild;
+  nv.textContent = "";
+  SECOES.forEach((x) => {
+    var a = ln("#/" + x[0], null, [h("i"), h("b", null, t(x[1])), h("span", null, t(x[2]))]);
+    a.dataset.r = x[0];
+    a.querySelector("i").outerHTML = ICO[x[3]];
+    a.onclick = fecharMenu;
+    nv.appendChild(a);
+  });
+  nv.appendChild(linguasMob());
+}
 function fecharMenu(instantaneo) {
   sair(
     mm,
@@ -999,6 +1003,7 @@ function fecharMenu(instantaneo) {
     instantaneo === true,
   );
   mb.setAttribute("aria-expanded", "false");
+  mb.setAttribute("aria-label", t("nav.abrirMenu"));
   mb.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   document.body.style.overflow = bov.hidden ? "" : "hidden";
@@ -1010,10 +1015,93 @@ mb.onclick = () => {
   }
   mm.hidden = false;
   mb.setAttribute("aria-expanded", "true");
+  mb.setAttribute("aria-label", t("nav.fecharMenu"));
   mb.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>';
   document.body.style.overflow = "hidden";
 };
+
+/* ---------- língua ---------- */
+/* cabeçalho: botão com a sigla que abre a lista; menu do celular: uma fileira com as cinco siglas */
+var lgBox = document.getElementById("lingua"),
+  lgBt = null,
+  lgLista = null;
+function fecharLingua() {
+  if (!lgLista || lgLista.hidden) return;
+  lgLista.hidden = true;
+  lgBt.setAttribute("aria-expanded", "false");
+}
+function montarLingua() {
+  lgBox.textContent = "";
+  lgBt = h("button", "lingua-bt", [h("i"), h("span", null, lingua().toUpperCase())]);
+  lgBt.type = "button";
+  lgBt.querySelector("i").outerHTML = ICO.lingua;
+  lgBt.setAttribute("aria-label", t("lingua.escolher") + ": " + t("lingua.nome"));
+  lgBt.setAttribute("aria-expanded", "false");
+  lgLista = h("ul", "lingua-lista");
+  lgLista.hidden = true;
+  LINGUAS.forEach((l) => {
+    var b = h("button", null, [h("b", null, l.curto), h("span", null, t("lingua.nome", null, l.id))]);
+    b.type = "button";
+    b.lang = l.html;
+    b.setAttribute("aria-current", String(l.id === lingua()));
+    b.onclick = () => {
+      fecharLingua();
+      trocarLingua(l.id);
+    };
+    lgLista.appendChild(h("li", null, [b]));
+  });
+  lgBt.onclick = () => {
+    lgLista.hidden = !lgLista.hidden;
+    lgBt.setAttribute("aria-expanded", String(!lgLista.hidden));
+  };
+  lgBox.appendChild(lgBt);
+  lgBox.appendChild(lgLista);
+}
+document.addEventListener("click", (e) => {
+  if (!lgBox.contains(e.target)) fecharLingua();
+});
+function linguasMob() {
+  var d = h("div", "lingua-mob");
+  d.setAttribute("role", "group");
+  d.setAttribute("aria-label", t("lingua.escolher"));
+  LINGUAS.forEach((l) => {
+    var b = h("button", "chip", l.curto);
+    b.type = "button";
+    b.lang = l.html;
+    b.setAttribute("aria-label", t("lingua.nome", null, l.id));
+    b.setAttribute("aria-pressed", String(l.id === lingua()));
+    b.onclick = () => {
+      fecharMenu(true);
+      trocarLingua(l.id);
+    };
+    d.appendChild(b);
+  });
+  return d;
+}
+/* textos fixos do index.html: data-t (texto), data-t-aria (aria-label) e data-t-ph (placeholder) */
+function aplicarTextos() {
+  document.documentElement.lang = LINGUAS.filter((l) => l.id === lingua())[0].html;
+  document.querySelectorAll("[data-t]").forEach((el) => {
+    el.textContent = t(el.dataset.t);
+  });
+  document.querySelectorAll("[data-t-aria]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.dataset.tAria));
+  });
+  document.querySelectorAll("[data-t-ph]").forEach((el) => {
+    el.placeholder = t(el.dataset.tPh);
+  });
+  montarLingua();
+  montarMenu();
+}
+function trocarLingua(id) {
+  if (id === lingua()) return;
+  definirLingua(id);
+  INDICE = null;
+  aplicarTextos();
+  route();
+}
+aplicarTextos();
 
 /* ---------- trilhas ---------- */
 var TRN = window.TRILHAS || {},
@@ -1033,7 +1121,7 @@ function todasQuestoes() {
           tema: k,
           temaN: TRN[k].n,
           nivel: m.nivel,
-          origem: "Módulo " + (mi + 1) + ": " + m.n,
+          origem: t("q.origemModulo", { n: mi + 1, x: m.n }),
           link: "#/trilhas/" + k + "/" + (mi + 1),
           p: q.p,
           o: q.o,
@@ -1050,7 +1138,7 @@ function todasQuestoes() {
       tema: q.tema,
       temaN: TR[q.tema] ? TR[q.tema].n : q.tema,
       nivel: q.nivel,
-      origem: "Nível " + q.nivel.toLowerCase(),
+      origem: t("q.origemNivel", { x: tv("comum.nivel", q.nivel).toLowerCase() }),
       link: "#/trilhas/" + q.tema,
       p: q.p,
       o: q.o,
@@ -1082,7 +1170,9 @@ function questao(q, n, aoResponder) {
     ops = h("div", "q-ops"),
     exp = h("div", "q-exp");
   exp.hidden = true;
-  box.appendChild(h("div", "q-n", [h("span", null, "Questão " + pad(n)), h("span", null, q.nivel)]));
+  box.appendChild(
+    h("div", "q-n", [h("span", null, t("q.questao", { n: pad(n) })), h("span", null, tv("comum.nivel", q.nivel))]),
+  );
   box.appendChild(h("p", "q-p", q.p));
   q.o.forEach((o, i) => {
     var b = h("button", "q-o", [h("span", "q-l", String.fromCharCode(65 + i)), h("span", null, o)]);
@@ -1098,7 +1188,7 @@ function questao(q, n, aoResponder) {
       });
       exp.hidden = false;
       exp.textContent = "";
-      exp.appendChild(h("b", null, ok ? "Correto. " : "Não foi dessa vez. "));
+      exp.appendChild(h("b", null, ok ? t("q.correto") : t("q.errado")));
       exp.appendChild(document.createTextNode(q.e));
       box.classList.add(ok ? "ok" : "no");
       if (aoResponder) aoResponder(ok);
@@ -1107,18 +1197,15 @@ function questao(q, n, aoResponder) {
   });
   box.appendChild(ops);
   box.appendChild(exp);
-  if (feito != null)
-    box.appendChild(
-      h("div", "q-hist", feito ? "Você já acertou esta antes." : "Você errou esta antes. Tente de novo."),
-    );
+  if (feito != null) box.appendChild(h("div", "q-hist", feito ? t("q.jaAcertou") : t("q.jaErrou")));
   return box;
 }
 
 /* ---------- trilhas ---------- */
 /* trilhas como mapa de percurso: cada trilha é uma estação com o progresso; no topo, o que continuar */
 var GRUPOS_TRILHAS = [
-  ["Hardware", ["pc", "cpu", "ram", "armazenamento"]],
-  ["Programação e IA", ["html", "python", "ia"]],
+  ["tri.grupo.Hardware", ["pc", "cpu", "ram", "armazenamento"]],
+  ["tri.grupo.Programação e IA", ["html", "python", "ia"]],
 ];
 /* um módulo conta como feito quando pelo menos metade das questões dele foi acertada */
 function modulosFeitos(k, prog) {
@@ -1139,22 +1226,13 @@ function vTrilhas() {
   barra.firstChild.style.width = (modulosFeitos(ck, prog) / TRN[ck].modulos.length) * 100 + "%";
   var topo = h("section", "tr-topo", [
     h("div", "tr-tit", [
-      h("h1", null, "Escolha um caminho."),
-      h(
-        "p",
-        "lead",
-        ORDEM.length +
-          " trilhas, " +
-          mods +
-          " módulos e " +
-          qs.length +
-          " questões. Seu progresso fica salvo neste navegador.",
-      ),
+      h("h1", null, t("tri.titulo")),
+      h("p", "lead", t("tri.lead", { t: ORDEM.length, m: mods, q: qs.length })),
     ]),
     ln("#/trilhas/" + ck + "/" + cn, "tr-cont", [
-      h("span", "vt-k", um ? "CONTINUE DE ONDE PAROU" : "COMECE POR AQUI"),
-      h("b", null, TRN[ck].n + " · módulo " + cn),
-      h("span", null, cm.n + " · " + cm.min + " min"),
+      h("span", "vt-k", um ? t("tri.continuar") : t("tri.comecar")),
+      h("b", null, t("tri.modulo", { x: TRN[ck].n, n: cn })),
+      h("span", null, cm.n + " · " + t("comum.min", { n: cm.min })),
       barra,
     ]),
   ]);
@@ -1162,28 +1240,32 @@ function vTrilhas() {
     var ids = g[1].filter((k) => TRN[k]),
       linha = h("div", "tr-linha");
     ids.forEach((k) => {
-      var t = TRN[k],
+      var tr = TRN[k],
         feitos = modulosFeitos(k, prog),
-        total = t.modulos.length,
+        total = tr.modulos.length,
         qt = qs.filter((q) => q.tema === k),
         respondidas = qt.filter((q) => prog[q.id] != null).length,
         estado = feitos >= total ? "feita" : feitos || respondidas ? "andamento" : "nova";
       linha.appendChild(
         ln("#/trilhas/" + k, "trilha estacao " + estado, [
           h("span", "tr-anel", feitos + "/" + total),
-          h("b", null, t.n),
-          h("span", "tr-est", estado === "feita" ? "Concluída" : estado === "andamento" ? "Em andamento" : t.r),
+          h("b", null, tr.n),
+          h(
+            "span",
+            "tr-est",
+            estado === "feita" ? t("tri.concluida") : estado === "andamento" ? t("tri.andamento") : tr.r,
+          ),
         ]),
       );
     });
     if (gi === GRUPOS_TRILHAS.length - 1)
       linha.appendChild(
         ln("#/questoes", "trilha estacao banco", [
-          h("b", null, "Banco de questões"),
-          h("span", "tr-est", "Treino e simulado com as " + qs.length + " questões"),
+          h("b", null, t("tri.banco")),
+          h("span", "tr-est", t("tri.bancoTexto", { n: qs.length })),
         ]),
       );
-    return h("section", "tr-grupo", [h("h2", null, g[0].toUpperCase()), linha]);
+    return h("section", "tr-grupo", [h("h2", null, t(g[0]).toUpperCase()), linha]);
   });
   return h("div", "wrap pg trilhas-mapa", [topo].concat(grupos));
 }
@@ -1202,7 +1284,10 @@ function vTrilha(k) {
       ln("#/trilhas/" + k + "/" + (i + 1), "mod", [
         h("div", "mod-n", pad(i + 1)),
         h("div", "mod-b", [
-          h("div", "mod-k", [h("span", "tag", m.nivel), h("span", null, m.min + " min · " + tot + " questões")]),
+          h("div", "mod-k", [
+            h("span", "tag", tv("comum.nivel", m.nivel)),
+            h("span", null, t("comum.min", { n: m.min }) + " · " + t("comum.questoes", { n: tot })),
+          ]),
           h("h3", null, m.n),
           h("p", null, m.resumo),
           bar,
@@ -1211,17 +1296,19 @@ function vTrilha(k) {
     );
   });
   return h("div", "wrap pg", [
-    head("Trilha", nova.n, nova.r + ". Seis módulos: dois básicos, dois intermediários e dois avançados."),
+    head(t("tri.trilha"), nova.n, t("tri.seisModulos", { x: nova.r }), "trilhas"),
     mods,
-    nova.peca ? ln("#/pecas/" + nova.peca, "back", nova.pecaTxt || "Ver o " + nova.n.toLowerCase() + " em 3D →") : null,
-    ln("#/trilhas", "back", "← Todas as trilhas"),
+    nova.peca
+      ? ln("#/pecas/" + nova.peca, "back", (lingua() === "pt" && nova.pecaTxt) || t("tri.verPeca3d", { x: nova.n }))
+      : null,
+    ln("#/trilhas", "back", t("tri.todas")),
   ]);
 }
 function vTrilhaAntiga(k) {
-  var t = TR[k],
+  var tr = TR[k],
     lv = h("div", "levels"),
     qs = todasQuestoes().filter((q) => q.tema === k);
-  t.l.forEach((d, i) => {
+  tr.l.forEach((d, i) => {
     var col = h("div", "lvl", [h("div", "on", pad(i + 1)), h("h3", null, d[0]), h("p", "txt", d[1])]);
     var ul = h("ul", "pts");
     d[2].forEach((s) => {
@@ -1236,21 +1323,17 @@ function vTrilhaAntiga(k) {
   NIV.forEach((nv) => {
     var sub = qs.filter((q) => q.nivel === nv);
     if (!sub.length) return;
-    qb.appendChild(h("h2", "q-sec", "Questões · " + nv));
+    qb.appendChild(h("h2", "q-sec", t("tri.questoesNivel", { x: tv("comum.nivel", nv) })));
     sub.forEach((q, i) => {
       qb.appendChild(questao(q, i + 1));
     });
   });
   return h("div", "wrap pg", [
-    head(
-      "Trilha",
-      t.n,
-      "Três níveis em sequência, com questões no fim. Esta trilha ainda vai ganhar o formato de 6 módulos.",
-    ),
+    head(t("tri.trilha"), tr.n, t("tri.antigaLead"), "trilhas"),
     lv,
     qb,
-    t.a ? ln("#/pecas/" + t.a, "back", "Ver " + t.n.toLowerCase() + " em 3D →") : null,
-    ln("#/trilhas", "back", "← Todas as trilhas"),
+    tr.a ? ln("#/pecas/" + tr.a, "back", t("tri.verPeca3d", { x: tr.n })) : null,
+    ln("#/trilhas", "back", t("tri.todas")),
   ]);
 }
 function vModulo(k, n) {
@@ -1263,13 +1346,13 @@ function vModulo(k, n) {
     var a = ln("#/trilhas/" + k + "/" + (i + 1), null, [
       h("span", "mn", pad(i + 1)),
       h("span", null, x.n),
-      h("span", "mk2", x.nivel),
+      h("span", "mk2", tv("comum.nivel", x.nivel)),
     ]);
     a.setAttribute("aria-current", String(i + 1 === n));
     nav.appendChild(h("li", null, [a]));
   });
   var corpo = h("article", "mod-corpo", [
-    h("div", "chap", "Módulo " + n + " de " + tr.modulos.length + " · " + m.nivel + " · " + m.min + " min"),
+    h("div", "chap", t("tri.moduloCab", { n: n, t: tr.modulos.length, nivel: tv("comum.nivel", m.nivel), min: m.min })),
     h("h1", null, m.n),
     h("p", "lead", m.resumo),
   ]);
@@ -1280,7 +1363,7 @@ function vModulo(k, n) {
       corpo.appendChild(d);
     } else if (b.t === "fato") corpo.appendChild(h("div", "fato", [h("b", null, b.n), h("span", null, b.d)]));
     else if (b.t === "dica")
-      corpo.appendChild(h("div", "dica", [h("span", "eyebrow", "Na prática"), h("p", null, b.h)]));
+      corpo.appendChild(h("div", "dica", [h("span", "eyebrow", t("tri.naPratica")), h("p", null, b.h)]));
     else if (b.t === "vis" && VIS[b.id]) {
       var v = h("figure", "vis");
       try {
@@ -1296,9 +1379,7 @@ function vModulo(k, n) {
     acertos = 0,
     feitas = 0;
   function upd() {
-    placar.textContent = feitas
-      ? acertos + " de " + feitas + " respondidas corretamente"
-      : qs.length + " questões. Responda para fixar o módulo.";
+    placar.textContent = feitas ? t("tri.placar", { a: acertos, f: feitas }) : t("tri.placarVazio", { n: qs.length });
   }
   upd();
   var ql = h("div", "qlist");
@@ -1311,23 +1392,20 @@ function vModulo(k, n) {
       }),
     );
   });
-  corpo.appendChild(h("section", "mod-q", [h("h2", null, "Teste o que você aprendeu"), placar, ql]));
+  corpo.appendChild(h("section", "mod-q", [h("h2", null, t("tri.teste")), placar, ql]));
   var pn = h("div", "chapnav");
   if (n > 1)
     pn.appendChild(
       ln("#/trilhas/" + k + "/" + (n - 1), null, [
-        h("span", null, "← Módulo anterior"),
+        h("span", null, t("tri.anterior")),
         h("b", null, tr.modulos[n - 2].n),
       ]),
     );
   if (n < tr.modulos.length)
     pn.appendChild(
-      ln("#/trilhas/" + k + "/" + (n + 1), "nx", [h("span", null, "Próximo módulo →"), h("b", null, tr.modulos[n].n)]),
+      ln("#/trilhas/" + k + "/" + (n + 1), "nx", [h("span", null, t("tri.proximo")), h("b", null, tr.modulos[n].n)]),
     );
-  else
-    pn.appendChild(
-      ln("#/questoes", "nx", [h("span", null, "Trilha concluída →"), h("b", null, "Praticar no banco de questões")]),
-    );
+  else pn.appendChild(ln("#/questoes", "nx", [h("span", null, t("tri.concluir")), h("b", null, t("tri.praticar"))]));
   corpo.appendChild(pn);
   setDots(tr.modulos.length, n - 1, (j) => {
     location.hash = "#/trilhas/" + k + "/" + (j + 1);
@@ -1349,7 +1427,7 @@ function vQuestoes() {
   all.forEach((q) => {
     cont[q.tema] = (cont[q.tema] || 0) + 1;
   });
-  var nomes = { "": "Todos" };
+  var nomes = { "": t("comum.todos") };
   ORDEM.forEach((k) => {
     nomes[k] = TRN[k].n;
   });
@@ -1383,8 +1461,7 @@ function vQuestoes() {
     },
   );
   cm.querySelectorAll("button").forEach((b) => {
-    b.firstChild.textContent =
-      b.dataset.v === "treino" ? "Treino: todas, com resposta na hora" : "Simulado: 10 sorteadas, nota no fim";
+    b.firstChild.textContent = b.dataset.v === "treino" ? t("qs.treino") : t("qs.simulado");
   });
   function d() {
     bsT.forEach((b) => {
@@ -1401,7 +1478,7 @@ function vQuestoes() {
         .slice(0, 10);
       var ok = 0,
         res = 0;
-      info.textContent = "Simulado com " + r.length + " questões.";
+      info.textContent = t("qs.simuladoCom", { n: r.length });
       r.forEach((q, i) => {
         lista.appendChild(
           questao(q, i + 1, (c) => {
@@ -1409,17 +1486,17 @@ function vQuestoes() {
             if (c) ok++;
             info.textContent =
               res < r.length
-                ? res + " de " + r.length + " respondidas"
-                : "Nota final: " + ok + " de " + r.length + " (" + Math.round((ok / r.length) * 100) + "%)";
+                ? t("qs.respondidas", { a: res, t: r.length })
+                : t("qs.nota", { a: ok, t: r.length, p: Math.round((ok / r.length) * 100) });
           }),
         );
       });
-      var nova = h("button", "btn line", "Sortear outro simulado");
+      var nova = h("button", "btn line", t("qs.sortear"));
       nova.onclick = d;
       lista.appendChild(nova);
       return;
     }
-    info.textContent = r.length + " questões";
+    info.textContent = t("comum.questoes", { n: r.length });
     r.forEach((q, i) => {
       var el = questao(q, i + 1);
       el.insertBefore(h("div", "q-orig", [ln(q.link, null, q.temaN + " · " + q.origem)]), el.children[1]);
@@ -1428,10 +1505,20 @@ function vQuestoes() {
   }
   d();
   return page(
-    "Banco de questões",
-    "Pratique por tema e nível.",
-    "Questões de todas as trilhas, com explicação de cada resposta. Seus acertos ficam salvos neste navegador.",
-    [h("div", "label", "Tema"), ct, h("div", "label", "Dificuldade"), cn, h("div", "label", "Modo"), cm, info, lista],
+    t("qs.eyebrow"),
+    t("qs.titulo"),
+    t("qs.lead"),
+    [
+      h("div", "label", t("qs.tema")),
+      ct,
+      h("div", "label", t("qs.dificuldade")),
+      cn,
+      h("div", "label", t("qs.modo")),
+      cm,
+      info,
+      lista,
+    ],
+    "trilhas",
   );
 }
 
@@ -3204,7 +3291,7 @@ function vGuias() {
         o.appendChild(h("li", null, s));
       });
       var el = h("details", "g", [
-        h("summary", null, [h("span", "k", g.cat), g.n, h("span", "st", g.s.length + " passos")]),
+        h("summary", null, [h("span", "k", g.cat), g.n, h("span", "st", t("guias.passos", { n: g.s.length }))]),
         h("p", "note", g.d),
         o,
       ]);
@@ -3214,12 +3301,7 @@ function vGuias() {
     });
   }
   d();
-  return page(
-    "Guias práticos",
-    "Passo a passo.",
-    "Hardware, sistema, rede, segurança e programação, na ordem em que as coisas acontecem.",
-    [cb, list],
-  );
+  return page(t("guias.eyebrow"), t("guias.titulo"), t("guias.lead"), [cb, list], "guias");
 }
 
 /* ---------- glossário ---------- */
@@ -3237,8 +3319,8 @@ function vGlos(q0) {
   q.id = "q";
   q.type = "search";
   q.value = q0 || "";
-  q.placeholder = "Buscar termo: cache, DNS, commit…";
-  var lq = h("label", "oculto-leitor", "Buscar no glossário");
+  q.placeholder = t("glos.placeholder");
+  var lq = h("label", "oculto-leitor", t("glos.buscar"));
   lq.htmlFor = "q";
   G.forEach((t) => {
     if (cats.indexOf(t[2]) < 0) cats.push(t[2]);
@@ -3254,7 +3336,7 @@ function vGlos(q0) {
   /* barra de letras: leva à letra e marca a que está na tela */
   var nav = h("nav", "dic-letras"),
     bL = {};
-  nav.setAttribute("aria-label", "Letras");
+  nav.setAttribute("aria-label", t("glos.letras"));
   letras.forEach((L) => {
     var b = h("a", null, L);
     b.href = "#";
@@ -3308,9 +3390,9 @@ function vGlos(q0) {
       b.setAttribute("aria-pressed", String(b.dataset.v === cat));
     });
     var r = G.filter((t) => (!cat || t[2] === cat) && (!s || (t[0] + " " + t[1]).toLowerCase().indexOf(s) > -1));
-    cn.textContent = r.length === 1 ? "1 termo" : r.length + " termos";
+    cn.textContent = t("glos.termos", { n: r.length });
     if (!r.length) {
-      lista.appendChild(h("p", "txt", "Nenhum termo encontrado. Tente outra palavra ou outro tema."));
+      lista.appendChild(h("p", "txt", t("glos.nada")));
       return;
     }
     if (s || cat) {
@@ -3343,15 +3425,15 @@ function vGlos(q0) {
     temas.appendChild(b);
   });
   var lado = h("aside", "dic-lado", [
-    h("div", "dic-dia", [h("span", "vt-k", "TERMO DO DIA"), h("b", null, termo[0]), h("p", null, termo[1])]),
-    h("div", "dic-filtro", [h("span", "vt-k", "POR TEMA"), temas]),
+    h("div", "dic-dia", [h("span", "vt-k", t("inicio.termoDia")), h("b", null, termo[0]), h("p", null, termo[1])]),
+    h("div", "dic-filtro", [h("span", "vt-k", t("glos.porTema")), temas]),
   ]);
   q.oninput = d;
   d();
   return h("div", "wrap pg glossario", [
     h("div", "dic", [
       nav,
-      h("div", "dic-meio", [h("div", "dic-cab", [h("h1", null, "Glossário"), cn]), lq, q, lista]),
+      h("div", "dic-meio", [h("div", "dic-cab", [h("h1", null, t("glos.titulo")), cn]), lq, q, lista]),
       lado,
     ]),
   ]);
@@ -3362,7 +3444,7 @@ function vGlos(q0) {
 function vJogo() {
   var caixa = h("div", "jogo");
   if (window.Gargalo) limpar.push(Gargalo.montar(caixa, todasQuestoes(), G));
-  else caixa.textContent = "O jogo não carregou. Recarregue a página.";
+  else caixa.textContent = t("jogo.falhou");
   return caixa;
 }
 
@@ -3420,7 +3502,7 @@ function vPecas() {
       ln("#/pecas/" + a.id, "pc-item", [
         h("span", "pc-num", String(i + 1)),
         h("b", null, a.n),
-        h("span", "pc-var", n ? n + " variantes" : "3D"),
+        h("span", "pc-var", n ? t("comum.variantes", { n: n }) : "3D"),
       ]),
     ]);
     [m, li].forEach((el) => {
@@ -3437,10 +3519,10 @@ function vPecas() {
   var total = Object.keys(V).reduce((s, k) => s + V[k].lista.length, 0);
   return h("div", "wrap pg pecas-pc", [
     h("div", "pc", [
-      h("section", "pc-cena", [h("span", "vt-k", "PASSE O MOUSE OU TOQUE EM UMA PEÇA"), palco]),
+      h("section", "pc-cena", [h("span", "vt-k", t("pecas.dica")), palco]),
       h("aside", "pc-lado", [
-        h("h1", null, "Abra o gabinete."),
-        h("p", "lead", P.length + " peças em 3D e " + total + " variantes. Escolha uma para girar, abrir e comparar."),
+        h("h1", null, t("pecas.titulo")),
+        h("p", "lead", t("pecas.lead", { p: P.length, v: total })),
         lista,
       ]),
     ]),
@@ -3460,7 +3542,7 @@ function vArtigo(a) {
   var chips = h("div", "chips var-chips"),
     holder = h("div", "var-palco"),
     ficha = h("div", "var-ficha"),
-    cmpBtn = h("button", "chip cmp-btn", "Comparar variantes");
+    cmpBtn = h("button", "chip cmp-btn", t("pecas.comparar"));
   var syncV = chipRow(
     chips,
     lista.map((v) => v.id),
@@ -3534,7 +3616,7 @@ function vArtigo(a) {
       ativos.push(v);
       holder.appendChild(v);
       ficha.appendChild(
-        h("div", "var-txt", [h("div", "eyebrow", "Variante"), h("h2", null, cur.n), h("p", "txt", cur.d)]),
+        h("div", "var-txt", [h("div", "eyebrow", t("pecas.variante")), h("h2", null, cur.n), h("p", "txt", cur.d)]),
       );
       ficha.appendChild(tabelaSpecs([cur]));
     } else {
@@ -3562,8 +3644,8 @@ function vArtigo(a) {
               "div",
               "cmp-top",
               i
-                ? [h("span", "eyebrow", "Comparar com"), sel]
-                : [h("span", "eyebrow", "Variante escolhida"), h("b", null, v.n)],
+                ? [h("span", "eyebrow", t("pecas.compararCom")), sel]
+                : [h("span", "eyebrow", t("pecas.escolhida")), h("b", null, v.n)],
             ),
             h("div", "cmp-palco", [st]),
           ]),
@@ -3572,13 +3654,13 @@ function vArtigo(a) {
       holder.appendChild(g);
       ficha.appendChild(
         h("div", "var-txt", [
-          h("div", "eyebrow", "O que muda"),
+          h("div", "eyebrow", t("pecas.muda")),
           h("p", "txt", [h("b", null, cur.n + ": "), cur.d]),
           h("p", "txt", [h("b", null, outra.n + ": "), outra.d]),
         ]),
       );
       ficha.appendChild(tabelaSpecs([cur, outra]));
-      ficha.appendChild(h("p", "note", "Linhas destacadas mostram onde as variantes diferem."));
+      ficha.appendChild(h("p", "note", t("pecas.destaque")));
     }
   }
   var tabs = V.tabelas.map((f) => {
@@ -3618,16 +3700,17 @@ function vArtigo(a) {
   render();
   return h("div", "wrap pg", [
     head(
-      "Peça " + pad(i + 1) + " de " + pad(P.length) + " · " + lista.length + " variantes · revisado em out/2026",
+      t("pecas.eyebrow", { n: pad(i + 1), t: pad(P.length), v: t("comum.variantes", { n: lista.length }) }),
       a.n,
       a.r,
+      "pecas",
     ),
     h("div", "var-bar", [chips, cmpBtn]),
     holder,
     ficha,
-    tabs.length ? h("section", "geracoes", [h("h2", null, "Gerações e padrões"), h("div", "fichas", tabs)]) : null,
+    tabs.length ? h("section", "geracoes", [h("h2", null, t("pecas.geracoes")), h("div", "fichas", tabs)]) : null,
     body,
-    ln("#/pecas", "back", "← Voltar para as peças"),
+    ln("#/pecas", "back", t("pecas.voltar")),
   ]);
 }
 
@@ -3642,11 +3725,11 @@ function todos() {
     formato: "Texto",
     l: b.l,
     nivel: b.nivel,
-    i: "PT",
+    i: b.i || "PT",
     proprio: b.proprio,
     vol: b.vol,
     href: "#/ler/" + b.id + "/1",
-    caps: b.caps.length + " capítulos",
+    caps: t("comum.capitulos", { n: b.caps.length }),
   }));
   var p = PDFS.map((b) => ({
     t: b.t,
@@ -3659,16 +3742,16 @@ function todos() {
     i: b.i,
     capa: b.capa,
     href: "#/pdf/" + b.id,
-    caps: b.paginas + " páginas",
+    caps: t("comum.paginas", { n: b.paginas }),
   }));
   return a.concat(p);
 }
 function bookCard(b) {
   if (!b.href) b = todos().filter((x) => x.t === b.t)[0];
   var tg = h("div", "tags");
-  if (b.nivel) tg.appendChild(h("span", "tag", b.nivel));
-  tg.appendChild(h("span", "tag", b.formato));
-  if (b.i === "EN") tg.appendChild(h("span", "tag", "Inglês"));
+  if (b.nivel) tg.appendChild(h("span", "tag", tv("comum.nivel", b.nivel)));
+  tg.appendChild(h("span", "tag", tv("formato", b.formato)));
+  if (b.i && b.i.toLowerCase() !== lingua()) tg.appendChild(h("span", "tag", t("idioma." + b.i)));
   if (b.l) tg.appendChild(h("span", "tag lic", b.l));
   var meta = h("div", "meta", [ln(b.href, "bt", b.t), b.a ? h("span", "by", b.a) : null, h("span", "by", b.caps), tg]);
   return h("div", "book", [cover(b, b.href), meta]);
@@ -3689,12 +3772,12 @@ function vBiblioteca(foco) {
   var destaque = h("section", "bib-destaque", [
     cover(dest, dest.href),
     h("div", "bd-txt", [
-      h("span", "vt-k", "EM DESTAQUE · " + (dest.nivel || "").toUpperCase()),
+      h("span", "vt-k", t("bib.destaque", { x: tv("comum.nivel", dest.nivel || "").toUpperCase() })),
       h("h2", null, dest.t),
       orig.resumo ? h("p", null, orig.resumo) : null,
       h("div", "ih-acoes", [
-        ln(dest.href, "bt-pri", "Ler agora"),
-        ln("#/biblioteca/buscar", "bt-sec", "Procurar outro"),
+        ln(dest.href, "bt-pri", t("bib.lerAgora")),
+        ln("#/biblioteca/buscar", "bt-sec", t("bib.procurarOutro")),
       ]),
     ]),
   ]);
@@ -3702,7 +3785,7 @@ function vBiblioteca(foco) {
   var q = h("input", "search");
   q.id = "qb";
   q.type = "search";
-  q.placeholder = "Título, autor ou tema";
+  q.placeholder = t("bib.placeholder");
   function seletor(id, rot, opcoes, set) {
     var s = h("select", "bib-sel");
     s.id = id;
@@ -3719,22 +3802,27 @@ function vBiblioteca(foco) {
     l.htmlFor = id;
     return h("div", null, [l, s]);
   }
-  var lb = h("label", "bib-rot", "Procurar na estante");
+  var lb = h("label", "bib-rot", t("bib.procurar"));
   lb.htmlFor = "qb";
   var busca = h("div", "bib-busca", [
     lb,
     q,
     h("div", "bib-sels", [
-      seletor("bib-nivel", "Nível", [["", "Todos os níveis"]].concat(NIV.map((n) => [n, n])), (v) => {
-        nv = v;
-      }),
+      seletor(
+        "bib-nivel",
+        t("bib.nivel"),
+        [["", t("bib.todosNiveis")]].concat(NIV.map((n) => [n, tv("comum.nivel", n)])),
+        (v) => {
+          nv = v;
+        },
+      ),
       seletor(
         "bib-formato",
-        "Formato",
+        t("bib.formato"),
         [
-          ["", "Texto e PDF"],
-          ["Texto", "Texto"],
-          ["PDF", "PDF"],
+          ["", t("bib.textoPdf")],
+          ["Texto", t("formato.Texto")],
+          ["PDF", t("formato.PDF")],
         ],
         (v) => {
           fm = v;
@@ -3746,7 +3834,7 @@ function vBiblioteca(foco) {
     "nav",
     "bib-areas",
     areas.map((a, k) => {
-      var x = ln("#", "chip", [a, h("span", "ct", String(cont[a]))]);
+      var x = ln("#", "chip", [tv("area", a), h("span", "ct", String(cont[a]))]);
       x.onclick = (e) => {
         e.preventDefault();
         var alvo = document.getElementById("estante-" + k);
@@ -3755,16 +3843,16 @@ function vBiblioteca(foco) {
       return x;
     }),
   );
-  atalhos.setAttribute("aria-label", "Ir para uma área");
+  atalhos.setAttribute("aria-label", t("bib.irArea"));
   var corpo = h("div", "bib-corpo"),
     ct = h("p", "count");
   ct.setAttribute("aria-live", "polite");
   /* sem busca nem filtro: prateleiras por área; com busca ou filtro: um único resultado */
   function d() {
-    var t = q.value.trim().toLowerCase();
+    var s = q.value.trim().toLowerCase();
     corpo.textContent = "";
-    if (!t && !nv && !fm) {
-      ct.textContent = all.length + " livros em " + areas.length + " áreas";
+    if (!s && !nv && !fm) {
+      ct.textContent = t("bib.livrosAreas", { l: t("comum.livros", { n: all.length }), a: areas.length });
       atalhos.hidden = false;
       areas.forEach((a, k) => {
         var fila = h("div", "prateleira");
@@ -3773,7 +3861,10 @@ function vBiblioteca(foco) {
           .forEach((b) => {
             fila.appendChild(bookCard(b));
           });
-        var sec = h("section", "estante", [h("h2", null, [a, " ", h("span", "ct", String(cont[a]))]), fila]);
+        var sec = h("section", "estante", [
+          h("h2", null, [tv("area", a), " ", h("span", "ct", String(cont[a]))]),
+          fila,
+        ]);
         sec.id = "estante-" + k;
         corpo.appendChild(sec);
       });
@@ -3784,11 +3875,12 @@ function vBiblioteca(foco) {
       (b) =>
         (!nv || b.nivel === nv) &&
         (!fm || b.formato === fm) &&
-        (!t || (b.t + " " + b.a + " " + b.tema + " " + b.area).toLowerCase().indexOf(t) > -1),
+        (!s ||
+          (b.t + " " + b.a + " " + b.tema + " " + b.area + " " + tv("area", b.area)).toLowerCase().indexOf(s) > -1),
     );
-    ct.textContent = r.length === 1 ? "1 livro encontrado" : r.length + " livros encontrados";
+    ct.textContent = t("bib.encontrados", { n: r.length });
     var grid = h("div", "books");
-    if (!r.length) grid.appendChild(h("p", "txt", "Nada encontrado. Tente outra palavra ou mude o nível e o formato."));
+    if (!r.length) grid.appendChild(h("p", "txt", t("bib.nada")));
     r.forEach((b, k) => {
       var c = bookCard(b);
       c.style.setProperty("--i", Math.min(k, 16));
@@ -3803,16 +3895,16 @@ function vBiblioteca(foco) {
       q.focus();
     }, 0);
   var src = h("p", "src", [
-    "Todos os livros abrem aqui no Bancada. Os livros em texto são do Bancada (CC BY-SA 4.0) ou do ",
-    ln("https://pt.wikibooks.org", "", "Wikilivros"),
-    " (CC BY-SA 4.0), com crédito em cada capítulo. Os PDFs vêm de autores e repositórios como o ",
+    t("bib.fonte1"),
+    ln(t("bib.wikiUrl"), "", t("bib.wiki")),
+    t("bib.fonte2"),
     ln("https://educapes.capes.gov.br", "", "eduCAPES"),
-    ", sempre com licença aberta conferida no próprio arquivo, e são mostrados sem alteração. Clique em ",
-    h("b", null, "Página oficial"),
-    " no leitor para ver a origem de cada um.",
+    t("bib.fonte3"),
+    h("b", null, t("comum.paginaOficial")),
+    t("bib.fonte4"),
   ]);
   return h("div", "wrap pg biblioteca", [
-    h("h1", "oculto-leitor", "Biblioteca"),
+    h("h1", "oculto-leitor", t("titulo.biblioteca")),
     h("div", "bib-topo", [destaque, busca]),
     atalhos,
     ct,
@@ -3842,49 +3934,41 @@ function vLer(id, n) {
   });
   var toc = h("aside", "toc", [
     cover(b),
-    h("div", null, [h("b", null, b.t), h("div", "by", [b.nivel + " · " + b.caps.length + " capítulos"])]),
+    h("div", null, [
+      h("b", null, b.t),
+      h("div", "by", [tv("comum.nivel", b.nivel) + " · " + t("comum.capitulos", { n: b.caps.length })]),
+    ]),
     ol,
   ]);
   var body = h("div", "body");
   body.innerHTML = c.html;
   var art = h("article", "prose", [
-    h("div", "chap", "Capítulo " + n + " de " + b.caps.length),
+    h("div", "chap", t("ler.capituloDe", { n: n, t: b.caps.length })),
     h("h1", null, c.t),
-    h("p", "by", b.t + " · " + b.a + (b.revisado ? " · revisado em " + b.revisado : "")),
+    h("p", "by", b.t + " · " + b.a + (b.revisado ? t("ler.revisado", { x: b.revisado }) : "")),
   ]);
   if (b.aviso) art.appendChild(h("div", "warn", b.aviso));
-  if (!b.proprio)
-    art.appendChild(
-      h(
-        "div",
-        "warn",
-        "As imagens do original não foram trazidas. Se um trecho citar uma figura, veja o capítulo no Wikilivros pelo link no fim da página.",
-      ),
-    );
+  if (!b.proprio) art.appendChild(h("div", "warn", t("ler.semImagens", { w: b.projeto || "Wikilivros" })));
   art.appendChild(body);
   var nav = h("div", "chapnav");
   if (n > 1)
     nav.appendChild(
-      ln("#/ler/" + id + "/" + (n - 1), null, [h("span", null, "← Anterior"), h("b", null, b.caps[n - 2].t)]),
+      ln("#/ler/" + id + "/" + (n - 1), null, [h("span", null, t("ler.anterior")), h("b", null, b.caps[n - 2].t)]),
     );
   if (n < b.caps.length)
-    nav.appendChild(ln("#/ler/" + id + "/" + (n + 1), "nx", [h("span", null, "Próximo →"), h("b", null, b.caps[n].t)]));
+    nav.appendChild(
+      ln("#/ler/" + id + "/" + (n + 1), "nx", [h("span", null, t("ler.proximo")), h("b", null, b.caps[n].t)]),
+    );
   art.appendChild(nav);
   art.appendChild(
     b.proprio
-      ? h(
-          "p",
-          "credit",
-          "Texto original do Bancada, licença CC BY-SA 4.0. Pode copiar e adaptar, dando crédito e mantendo a mesma licença.",
-        )
+      ? h("p", "credit", t("ler.creditoProprio"))
       : h("p", "credit", [
-          "Texto de ",
+          t("ler.creditoWiki1"),
           ln(b.fonte + "/" + encodeURIComponent(c.t.replace(/ /g, "_")), "", "“" + c.t + "”"),
-          " no livro ",
+          t("ler.creditoWiki2"),
           ln(b.fonte, "", b.t),
-          " do Wikilivros, por colaboradores do projeto, licença CC BY-SA 4.0. Adaptado pelo Bancada: formatação simplificada, imagens e predefinições removidas. Importado em " +
-            b.importado +
-            ".",
+          t("ler.creditoWiki3", { w: b.projeto || "Wikilivros", x: b.importado }),
         ]),
   );
   setDots(b.caps.length, n - 1, (j) => {
@@ -3931,16 +4015,16 @@ function vPdf(id, pg) {
   inp.min = 1;
   inp.max = b.paginas;
   inp.value = ini;
-  inp.setAttribute("aria-label", "Página");
+  inp.setAttribute("aria-label", t("pdf.pagina"));
   var ant = h("button", null, "‹"),
     prox = h("button", null, "›"),
     menos = h("button", null, "−"),
     mais = h("button", null, "+"),
-    larg = h("button", null, "Largura");
-  ant.setAttribute("aria-label", "Página anterior");
-  prox.setAttribute("aria-label", "Próxima página");
-  menos.setAttribute("aria-label", "Diminuir zoom");
-  mais.setAttribute("aria-label", "Aumentar zoom");
+    larg = h("button", null, t("pdf.largura"));
+  ant.setAttribute("aria-label", t("pdf.anterior"));
+  prox.setAttribute("aria-label", t("pdf.proxima"));
+  menos.setAttribute("aria-label", t("pdf.menos"));
+  mais.setAttribute("aria-label", t("pdf.mais"));
   var bar = h("div", "pdf-bar", [
     h("div", "pdf-t", [h("b", null, b.t), h("span", null, b.a)]),
     h("div", "pdf-ctl", [
@@ -3954,24 +4038,19 @@ function vPdf(id, pg) {
     ]),
   ]);
   var folhas = h("div", "pdf-folhas"),
-    status = h("div", "pdf-status", [h("span", null, "Baixando o PDF…"), h("div", "barra-prog", [h("i")])]);
+    status = h("div", "pdf-status", [h("span", null, t("pdf.baixando")), h("div", "barra-prog", [h("i")])]);
   var info = h("div", "pdf-info", [
     cover(b),
     h("div", null, [
-      h("div", "eyebrow", b.nivel + " · " + b.area),
+      h("div", "eyebrow", tv("comum.nivel", b.nivel) + " · " + tv("area", b.area)),
       h("h1", null, b.t),
       h("p", "by", b.a),
       h("div", "tags", [
-        h("span", "tag", "PDF · " + b.paginas + " páginas"),
+        h("span", "tag", t("pdf.tag", { x: t("comum.paginas", { n: b.paginas }) })),
         h("span", "tag lic", b.l),
-        b.i === "EN" ? h("span", "tag", "Inglês") : null,
+        b.i && b.i.toLowerCase() !== lingua() ? h("span", "tag", t("idioma." + b.i)) : null,
       ]),
-      h("p", "credit", [
-        "Distribuído pelo Bancada sem alterações, conforme a licença ",
-        b.l,
-        ". ",
-        ln(b.fonte, "", "Página oficial ↗"),
-      ]),
+      h("p", "credit", [t("pdf.distribuido", { x: b.l }), ln(b.fonte, "", t("pdf.oficial"))]),
     ]),
   ]);
   function irPara(n, suave) {
@@ -4130,7 +4209,7 @@ function vPdf(id, pg) {
   }
   document.addEventListener("keydown", tecla);
   /* ---- anotações: marcador em 3 cores, comentários em trechos e bloco de notas, salvos neste navegador ---- */
-  var CORES = { a: ["#ffd84d", "amarelo"], v: ["#7be08f", "verde"], r: ["#ff8fb3", "rosa"] },
+  var CORES = { a: ["#ffd84d", t("anot.cor.a")], v: ["#7be08f", t("anot.cor.v")], r: ["#ff8fb3", t("anot.cor.r")] },
     ANOT = "bancada:anotacoes",
     an = { m: [], n: "" },
     modo = null,
@@ -4186,7 +4265,7 @@ function vPdf(id, pg) {
       });
       if (m.nota) {
         var u = m.r[m.r.length - 1],
-          b = bIco("amk-ic", "com", "Ver comentário");
+          b = bIco("amk-ic", "com", t("anot.verComentario"));
         b.style.left = (u[0] + u[2]) * 100 + "%";
         b.style.top = u[1] * 100 + "%";
         b.onclick = (e) => {
@@ -4266,10 +4345,10 @@ function vPdf(id, pg) {
   function editarNota(m, i) {
     var ta = h("textarea");
     ta.rows = 3;
-    ta.placeholder = "Escreva seu comentário sobre este trecho";
+    ta.placeholder = t("anot.escreva");
     ta.value = i == null ? "" : an.m[i].nota || "";
-    var ok = h("button", "bt-mini on", "Salvar"),
-      nao = h("button", "bt-mini", "Cancelar");
+    var ok = h("button", "bt-mini on", t("comum.salvar")),
+      nao = h("button", "bt-mini", t("comum.cancelar"));
     ok.type = nao.type = "button";
     nao.onclick = fecharPop;
     ok.onclick = () => {
@@ -4300,7 +4379,7 @@ function vPdf(id, pg) {
       var b = h("button", "fr-cor");
       b.type = "button";
       b.style.setProperty("--c", CORES[k][0]);
-      b.setAttribute("aria-label", "Trocar para " + CORES[k][1]);
+      b.setAttribute("aria-label", t("anot.trocarPara", { x: CORES[k][1] }));
       b.setAttribute("aria-pressed", String(m.c === k));
       b.onclick = () => {
         m.c = k;
@@ -4311,8 +4390,8 @@ function vPdf(id, pg) {
       };
       cores.appendChild(b);
     });
-    var com = h("button", "bt-mini", m.nota ? "Editar comentário" : "Comentar"),
-      rem = h("button", "bt-mini", "Remover");
+    var com = h("button", "bt-mini", m.nota ? t("anot.editar") : t("anot.comentar")),
+      rem = h("button", "bt-mini", t("comum.remover"));
     com.type = rem.type = "button";
     com.onclick = () => {
       editarNota(m, i);
@@ -4358,7 +4437,7 @@ function vPdf(id, pg) {
       }, 0);
   });
   /* no toque a seleção termina sem pointerup confiável: mostra um botão para confirmar */
-  var okBt = h("button", "anot-ok", "Marcar trecho");
+  var okBt = h("button", "anot-ok", t("anot.marcarTrecho"));
   okBt.type = "button";
   okBt.hidden = true;
   okBt.addEventListener("pointerdown", (e) => {
@@ -4377,7 +4456,7 @@ function vPdf(id, pg) {
       }
       pend = capturar();
       okBt.hidden = !pend;
-      okBt.textContent = modo === "c" ? "Comentar trecho" : "Marcar trecho";
+      okBt.textContent = modo === "c" ? t("anot.comentarTrecho") : t("anot.marcarTrecho");
     }, 250);
   }
   document.addEventListener("selectionchange", aoSelecionar);
@@ -4395,8 +4474,8 @@ function vPdf(id, pg) {
     dica.textContent = !modo
       ? ""
       : modo === "c"
-        ? "Selecione um trecho para comentar"
-        : "Selecione um trecho para marcar em " + CORES[modo][1];
+        ? t("anot.selecioneComentar")
+        : t("anot.selecioneMarcar", { x: CORES[modo][1] });
     if (!modo) {
       okBt.hidden = true;
       pend = null;
@@ -4407,8 +4486,8 @@ function vPdf(id, pg) {
     var b = h("button", "fr-cor");
     b.type = "button";
     b.style.setProperty("--c", CORES[k][0]);
-    b.setAttribute("aria-label", "Marcador " + CORES[k][1]);
-    b.title = "Marcador " + CORES[k][1];
+    b.setAttribute("aria-label", t("anot.marcador", { x: CORES[k][1] }));
+    b.title = t("anot.marcador", { x: CORES[k][1] });
     b.setAttribute("aria-pressed", "false");
     b.onclick = () => {
       modoPara(k);
@@ -4416,38 +4495,38 @@ function vPdf(id, pg) {
     botoesModo[k] = b;
     cores.appendChild(b);
   });
-  var bCom = bIco("fr-bt", "com", "Comentar um trecho", "Comentar");
+  var bCom = bIco("fr-bt", "com", t("anot.comentarUm"), t("anot.comentar"));
   bCom.setAttribute("aria-pressed", "false");
   bCom.onclick = () => {
     modoPara("c");
   };
   botoesModo.c = bCom;
-  var bNotas = bIco("fr-bt", "notas", "Abrir o bloco de notas", "Notas");
+  var bNotas = bIco("fr-bt", "notas", t("anot.abrirNotas"), t("anot.notas"));
   bNotas.onclick = () => {
     abrirCaderno("n");
   };
-  var bLista = bIco("fr-bt so-cel", "lista", "Ver marcações", "Marcações");
+  var bLista = bIco("fr-bt so-cel", "lista", t("anot.verMarcacoes"), t("anot.marcacoes"));
   bLista.onclick = () => {
     abrirCaderno("m");
   };
   var listaLado = h("div", "fr-lista"),
     contLado = h("span", "fr-n");
   var ferr = h("aside", "pdf-ferr", [
-    h("h3", "so-pc", ["Marcador"]),
+    h("h3", "so-pc", [t("anot.marcadorTit")]),
     cores,
     h("span", "fr-sep"),
     bCom,
     bNotas,
     bLista,
     dica,
-    h("h3", "so-pc fr-h-lista", ["Marcações ", contLado]),
+    h("h3", "so-pc fr-h-lista", [t("anot.marcacoes") + " ", contLado]),
     listaLado,
   ]);
-  ferr.setAttribute("aria-label", "Ferramentas de leitura");
+  ferr.setAttribute("aria-label", t("anot.ferramentas"));
   function preencher(cx) {
     cx.textContent = "";
     if (!an.m.length) {
-      cx.appendChild(h("p", "fr-vazio", "Nada marcado ainda. Escolha uma cor ou Comentar e selecione um trecho."));
+      cx.appendChild(h("p", "fr-vazio", t("anot.vazio")));
       return;
     }
     an.m
@@ -4457,7 +4536,7 @@ function vPdf(id, pg) {
         var m = par[0],
           it = h("button", "fr-item", [
             h("i"),
-            h("span", null, [h("b", null, "p. " + m.p + " "), "“" + curto(m.t, 70) + "”"]),
+            h("span", null, [h("b", null, t("anot.pag", { n: m.p })), "“" + curto(m.t, 70) + "”"]),
             m.nota ? h("em", null, curto(m.nota, 90)) : null,
           ]);
         it.type = "button";
@@ -4476,23 +4555,23 @@ function vPdf(id, pg) {
   }
   /* caderno: bloco de notas e lista de marcações num pop-up que abre e fecha */
   var ta = h("textarea", "cad-ta");
-  ta.placeholder = "Suas anotações sobre este livro. Tudo fica salvo neste navegador.";
+  ta.placeholder = t("anot.placeholder");
   ta.value = an.n;
-  var salvoTx = h("span", "cad-salvo", an.n ? "Salvo" : "");
+  var salvoTx = h("span", "cad-salvo", an.n ? t("anot.salvo") : "");
   var tSalva = 0;
   ta.oninput = () => {
-    salvoTx.textContent = "Salvando…";
+    salvoTx.textContent = t("anot.salvando");
     clearTimeout(tSalva);
     tSalva = setTimeout(() => {
       an.n = ta.value;
       salvarAnot();
-      salvoTx.textContent = "Salvo";
+      salvoTx.textContent = t("anot.salvo");
     }, 400);
   };
-  var abaN = h("button", "cad-aba", "Notas"),
-    abaM = h("button", "cad-aba", "Marcações"),
+  var abaN = h("button", "cad-aba", t("anot.notas")),
+    abaM = h("button", "cad-aba", t("anot.marcacoes")),
     listaCad = h("div", "fr-lista"),
-    fechaCad = bIco("icon-btn", "x", "Fechar");
+    fechaCad = bIco("icon-btn", "x", t("comum.fechar"));
   abaN.type = abaM.type = "button";
   var corpoN = h("div", "cad-corpo", [ta, salvoTx]),
     corpoM = h("div", "cad-corpo", [listaCad]);
@@ -4503,7 +4582,7 @@ function vPdf(id, pg) {
   ]);
   caderno.hidden = true;
   caderno.setAttribute("role", "dialog");
-  caderno.setAttribute("aria-label", "Caderno do livro");
+  caderno.setAttribute("aria-label", t("anot.caderno"));
   function abrirCaderno(qual) {
     var sel = qual === "m";
     abaN.setAttribute("aria-selected", String(!sel));
@@ -4571,7 +4650,7 @@ function vPdf(id, pg) {
         if (!pr.total) return;
         var f = Math.min(1, pr.loaded / pr.total);
         barra.style.transform = "scaleX(" + f + ")";
-        rot.textContent = "Baixando o PDF… " + Math.round(f * 100) + "%";
+        rot.textContent = t("pdf.baixandoPct", { n: Math.round(f * 100) });
       };
       return tarefa.promise;
     })
@@ -4590,8 +4669,7 @@ function vPdf(id, pg) {
       }, 60);
     })
     .catch(() => {
-      status.textContent =
-        "Não foi possível abrir este PDF agora. Tente recarregar a página ou veja a página oficial do livro.";
+      status.textContent = t("pdf.falhou");
       status.classList.add("erro");
     });
   return h("div", "wrap pg leitor-pdf", [info, bar, status, h("div", "pdf-corpo", [folhas, ferr]), caderno, okBt]);
@@ -4609,46 +4687,46 @@ function route() {
   var p = location.hash.replace(/^#\/?/, "").split("/"),
     r = p[0],
     n,
-    t,
+    tt,
     sec = r;
   dots.textContent = "";
   if (r === "trilhas") {
     n = p[2] ? vModulo(p[1], p[2]) : p[1] ? vTrilha(p[1]) : vTrilhas();
     if (!n) n = vTrilhas();
-    t = "Trilhas";
+    tt = t("titulo.trilhas");
   } else if (r === "questoes") {
     n = vQuestoes();
-    t = "Banco de questões";
+    tt = t("titulo.questoes");
     sec = "trilhas";
   } else if (r === "guias") {
     n = vGuias();
-    t = "Guias";
+    tt = t("titulo.guias");
   } else if (r === "glossario") {
     n = vGlos(p[1] ? decodeURIComponent(p[1]) : "");
-    t = "Glossário";
+    tt = t("titulo.glossario");
   } else if (r === "jogo") {
     n = vJogo();
-    t = "Gargalo";
+    tt = t("titulo.jogo");
   } else if (r === "fichas") {
     n = vPecas();
-    t = "Peças";
+    tt = t("titulo.pecas");
     sec = "pecas";
   } else if (r === "biblioteca") {
     n = vBiblioteca(p[1] === "buscar");
-    t = "Biblioteca";
+    tt = t("titulo.biblioteca");
   } else if (r === "ler" && (n = vLer(p[1], p[2]))) {
-    t = LIVROS.filter((x) => x.id === p[1])[0].t;
+    tt = LIVROS.filter((x) => x.id === p[1])[0].t;
     sec = "biblioteca";
   } else if (r === "pdf" && (n = vPdf(p[1], p[2]))) {
-    t = PDFS.filter((x) => x.id === p[1])[0].t;
+    tt = PDFS.filter((x) => x.id === p[1])[0].t;
     sec = "biblioteca";
   } else if (r === "pecas") {
     var a = P.filter((x) => x.id === p[1])[0];
     n = a ? vArtigo(a) : vPecas();
-    t = a ? a.n : "Peças";
+    tt = a ? a.n : t("titulo.pecas");
   } else {
     n = vHome();
-    t = null;
+    tt = null;
     sec = "";
   }
   app.textContent = "";
@@ -4663,7 +4741,7 @@ function route() {
       });
     });
   });
-  document.title = t ? "Bancada · " + t : "Bancada";
+  document.title = tt ? "Bancada · " + tt : "Bancada";
   links.forEach((a) => {
     if (a.dataset.r === sec) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
