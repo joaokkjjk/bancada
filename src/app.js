@@ -1216,40 +1216,77 @@ function questao(q, n, aoResponder) {
 }
 
 /* ---------- trilhas ---------- */
+/* trilhas como mapa de percurso: cada trilha é uma estação com o progresso; no topo, o que continuar */
+var GRUPOS_TRILHAS = [
+  ["Hardware", ["pc", "cpu", "ram", "armazenamento"]],
+  ["Programação e IA", ["html", "python", "ia"]],
+];
+/* um módulo conta como feito quando pelo menos metade das questões dele foi acertada */
+function modulosFeitos(k, prog) {
+  return TRN[k].modulos.filter((m, mi) => {
+    var ac = m.q.filter((_, qi) => prog[k + "-m" + (mi + 1) + "-" + qi] === 1).length;
+    return m.q.length && ac >= m.q.length / 2;
+  }).length;
+}
 function vTrilhas() {
-  var g = h("div", "tiles trilhas-g"),
-    prog = progresso(),
-    qs = todasQuestoes();
-  ORDEM.forEach((k, i) => {
-    var nova = TRN[k],
-      qt = qs.filter((q) => q.tema === k),
-      ac = qt.filter((q) => prog[q.id] === 1).length;
-    var bar = h("div", "prog", [h("i")]);
-    bar.firstChild.style.width = (qt.length ? (ac / qt.length) * 100 : 0) + "%";
-    g.appendChild(
-      ln("#/trilhas/" + k, "tile trilha", [
-        h("span", "n", nova.modulos.length + " módulos · " + qt.length + " questões"),
-        h("b", null, nova.n),
-        h("span", null, nova.r),
-        bar,
-        h("span", "pc", ac + " de " + qt.length + " acertos"),
-      ]),
-    );
-  });
-  g.appendChild(
-    ln("#/questoes", "tile trilha banco", [
-      h("span", "n", "Todas as trilhas"),
-      h("b", null, "Banco de questões"),
-      h("span", null, qs.length + " questões por tema e dificuldade, com treino e simulado"),
-      h("span", "pc", "Abrir →"),
+  var prog = progresso(),
+    qs = todasQuestoes(),
+    mods = ORDEM.reduce((a, k) => a + TRN[k].modulos.length, 0);
+  var um = ultimo("modulo"),
+    ck = um && TRN[um.k] ? um.k : ORDEM[0],
+    cn = um && TRN[um.k] ? Math.min(um.n, TRN[ck].modulos.length) : 1,
+    cm = TRN[ck].modulos[cn - 1];
+  var barra = h("div", "prog", [h("i")]);
+  barra.firstChild.style.width = (modulosFeitos(ck, prog) / TRN[ck].modulos.length) * 100 + "%";
+  var topo = h("section", "tr-topo", [
+    h("div", "tr-tit", [
+      h("h1", null, "Escolha um caminho."),
+      h(
+        "p",
+        "lead",
+        ORDEM.length +
+          " trilhas, " +
+          mods +
+          " módulos e " +
+          qs.length +
+          " questões. Seu progresso fica salvo neste navegador.",
+      ),
     ]),
-  );
-  return page(
-    "Trilhas",
-    "Aprenda em sequência.",
-    "Cada trilha vai do básico ao avançado, com explicações visuais, simulações e questões no fim de cada etapa. Seu progresso fica salvo neste navegador.",
-    [g],
-  );
+    ln("#/trilhas/" + ck + "/" + cn, "tr-cont", [
+      h("span", "vt-k", um ? "CONTINUE DE ONDE PAROU" : "COMECE POR AQUI"),
+      h("b", null, TRN[ck].n + " · módulo " + cn),
+      h("span", null, cm.n + " · " + cm.min + " min"),
+      barra,
+    ]),
+  ]);
+  var grupos = GRUPOS_TRILHAS.map((g, gi) => {
+    var ids = g[1].filter((k) => TRN[k]),
+      linha = h("div", "tr-linha");
+    ids.forEach((k) => {
+      var t = TRN[k],
+        feitos = modulosFeitos(k, prog),
+        total = t.modulos.length,
+        qt = qs.filter((q) => q.tema === k),
+        respondidas = qt.filter((q) => prog[q.id] != null).length,
+        estado = feitos >= total ? "feita" : feitos || respondidas ? "andamento" : "nova";
+      linha.appendChild(
+        ln("#/trilhas/" + k, "trilha estacao " + estado, [
+          h("span", "tr-anel", feitos + "/" + total),
+          h("b", null, t.n),
+          h("span", "tr-est", estado === "feita" ? "Concluída" : estado === "andamento" ? "Em andamento" : t.r),
+        ]),
+      );
+    });
+    if (gi === GRUPOS_TRILHAS.length - 1)
+      linha.appendChild(
+        ln("#/questoes", "trilha estacao banco", [
+          h("b", null, "Banco de questões"),
+          h("span", "tr-est", "Treino e simulado com as " + qs.length + " questões"),
+        ]),
+      );
+    return h("section", "tr-grupo", [h("h2", null, g[0].toUpperCase()), linha]);
+  });
+  return h("div", "wrap pg trilhas-mapa", [topo].concat(grupos));
 }
 function vTrilha(k) {
   var nova = TRN[k];
@@ -4692,7 +4729,7 @@ function route() {
 }
 /* sem suporte a animação ligada à rolagem: blocos abaixo da dobra entram em foco quando chegam à tela */
 var REVELAR =
-  ".vitrine > *, .estante, .cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
+  ".vitrine > *, .tr-grupo, .estante, .cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
 function revelarAoRolar(raiz) {
   // onde o CSS anima pela rolagem (animation-timeline), ele mesmo cuida da revelação
   if (calmo || !window.IntersectionObserver || (window.CSS && CSS.supports("animation-timeline: view()"))) return;

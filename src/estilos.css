@@ -4741,6 +4741,7 @@ header.top.rolou .topin {
    Nos outros navegadores o JS usa a classe .revelar abaixo; com movimento reduzido, nada disso roda. */
 @supports (animation-timeline: view()) {
   .vitrine > *,
+  .tr-grupo,
   .estante,
   .cat,
   .duo-cards a,
@@ -5979,5 +5980,174 @@ footer {
 @media (max-width: 640px) {
   .dic-col {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===== trilhas como mapa de percurso (Issue #17) ===== */
+.tr-topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 32px;
+  align-items: stretch;
+  margin-bottom: 44px;
+}
+.tr-tit {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  animation: entra 0.6s var(--ease) both;
+}
+.tr-tit h1 {
+  margin: 0;
+  font: 800 clamp(36px, 4.4vw, 56px) / 1.02 var(--display);
+  letter-spacing: -0.035em;
+}
+.tr-tit .lead {
+  margin: 0;
+}
+.tr-cont {
+  display: grid;
+  gap: 8px;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  animation: entra 0.6s 0.08s var(--ease) both;
+  transition:
+    background 0.2s var(--ease),
+    translate 0.2s var(--ease);
+}
+.tr-cont:hover {
+  background: var(--claro);
+  translate: 0 -3px;
+}
+.tr-cont .vt-k {
+  color: #4a4a4a;
+}
+.tr-cont b {
+  font: 800 24px var(--display);
+  letter-spacing: -0.02em;
+}
+.tr-cont span:not(.vt-k) {
+  font-size: 14px;
+  color: #3a3a3a;
+}
+.tr-cont .prog {
+  background: #d9d9d9;
+}
+.tr-cont .prog i {
+  background: var(--ink);
+}
+.tr-grupo {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 44px;
+}
+.tr-grupo h2 {
+  margin: 0;
+  font: 500 12px var(--mono);
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+.tr-linha {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.tr-linha::before {
+  content: "";
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  top: 31px;
+  height: 2px;
+  background: var(--line);
+}
+.estacao {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+.estacao b {
+  font: 700 19px / 1.2 var(--display);
+}
+.tr-est {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.tr-anel {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--soft);
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+  font: 700 15px var(--display);
+  color: var(--muted);
+  transition:
+    border-color 0.2s var(--ease),
+    background 0.2s var(--ease),
+    color 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+.estacao.andamento .tr-anel {
+  border: 3px solid var(--medio);
+  color: #fff;
+}
+.estacao.feita .tr-anel {
+  border: 3px solid #fff;
+  color: #fff;
+}
+.estacao:hover .tr-anel {
+  background: #fff;
+  border-color: #fff;
+  color: var(--ink);
+  transform: scale(1.06);
+}
+.estacao.banco {
+  align-content: center;
+  padding: 16px;
+  border: 1px dashed var(--soft);
+  border-radius: var(--r-lg);
+}
+@media (max-width: 900px) {
+  .tr-topo {
+    grid-template-columns: 1fr;
+  }
+  .tr-linha {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .tr-linha::before {
+    left: 31px;
+    right: auto;
+    top: 32px;
+    bottom: 32px;
+    width: 2px;
+    height: auto;
+  }
+  .estacao {
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 16px;
+    row-gap: 2px;
+    align-items: center;
+  }
+  .estacao .tr-anel {
+    grid-row: span 2;
+  }
+  .estacao.banco {
+    grid-template-columns: 1fr;
+    margin-left: 80px;
   }
 }

@@ -7,7 +7,7 @@ const ROTAS = [
   ["pecas", /Uma peça de cada vez/],
   ["guias", /Passo a passo/],
   ["glossario", /Glossário/],
-  ["trilhas", /Aprenda em sequência/],
+  ["trilhas", /Escolha um caminho/],
   ["questoes", /Pratique por tema/],
 ];
 
