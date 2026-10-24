@@ -56,3 +56,16 @@ test("o banco de questões tem simulado com nota", async ({ page }) => {
   await page.locator(".chip", { hasText: "Simulado" }).click();
   await expect(page.locator(".qlist .q")).toHaveCount(10);
 });
+
+test("o mapa de trilhas oferece continuar o último módulo e mostra o progresso", async ({ page }) => {
+  await abrir(page, "trilhas");
+  await expect(page.locator(".tr-cont .vt-k")).toHaveText("COMECE POR AQUI");
+  await abrir(page, "trilhas/python/3");
+  const q = page.locator(".mod-q .q");
+  const n = await q.count();
+  for (let i = 0; i < n; i++) await q.nth(i).locator(".q-o").first().click();
+  await abrir(page, "trilhas");
+  await expect(page.locator(".tr-cont .vt-k")).toHaveText("CONTINUE DE ONDE PAROU");
+  await expect(page.locator(".tr-cont b")).toHaveText("Python · módulo 3");
+  await expect(page.locator(".estacao", { hasText: "Python" })).toHaveClass(/andamento|feita/);
+});
