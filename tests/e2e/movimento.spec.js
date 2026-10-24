@@ -39,8 +39,10 @@ test("o 3D mostra um skeleton enquanto carrega e depois o modelo", async ({ page
 });
 
 test("blocos abaixo da dobra sobem e entram em foco acompanhando a rolagem", async ({ page }) => {
+  // o início carrega o 3D, lento sem placa de vídeo
+  test.slow();
   await abrir(page, "");
-  const livro = page.locator(".shelf > *").first();
+  const livro = page.locator(".vitrine > *").last();
   // o Chromium anima pela rolagem (animation-timeline); outros navegadores usam a classe .revelar
   await expect(livro).toHaveCSS("animation-name", "revela");
   await expect(livro).toHaveCSS("animation-timeline", "view()");
