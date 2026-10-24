@@ -3610,78 +3610,128 @@ function bookCard(b) {
   var meta = h("div", "meta", [ln(b.href, "bt", b.t), b.a ? h("span", "by", b.a) : null, h("span", "by", b.caps), tg]);
   return h("div", "book", [cover(b, b.href), meta]);
 }
+/* biblioteca como estante: um livro em destaque, busca compacta e prateleiras por área */
 function vBiblioteca(foco) {
   var all = todos(),
-    ar = "",
     nv = "",
-    q = h("input", "search"),
-    ca = h("div", "chips"),
-    cn = h("div", "chips"),
-    ct = h("p", "count"),
-    grid = h("div", "books"),
-    cont = { "": all.length };
-  q.id = "qb";
-  q.type = "search";
-  q.placeholder = "Buscar título, autor ou tema (ex.: memória, Python, Linux)";
-  q.setAttribute("aria-label", "Buscar na biblioteca");
+    fm = "",
+    cont = {};
   all.forEach((b) => {
     cont[b.area] = (cont[b.area] || 0) + 1;
   });
-  var areas = [""].concat(
-    Object.keys(cont)
-      .filter(Boolean)
-      .sort((a, b) => cont[b] - cont[a]),
-  );
-  var syncA = chipRow(
-    ca,
-    areas,
-    () => ar,
-    (v) => {
-      ar = v;
+  var areas = Object.keys(cont).sort((a, b) => cont[b] - cont[a]);
+  /* destaque: o primeiro livro do Bancada, com o resumo guardado no livro */
+  var dest = all.filter((b) => b.proprio)[0] || all[0],
+    orig = LIVROS.filter((l) => "#/ler/" + l.id + "/1" === dest.href)[0] || {};
+  var destaque = h("section", "bib-destaque", [
+    cover(dest, dest.href),
+    h("div", "bd-txt", [
+      h("span", "vt-k", "EM DESTAQUE · " + (dest.nivel || "").toUpperCase()),
+      h("h2", null, dest.t),
+      orig.resumo ? h("p", null, orig.resumo) : null,
+      h("div", "ih-acoes", [
+        ln(dest.href, "bt-pri", "Ler agora"),
+        ln("#/biblioteca/buscar", "bt-sec", "Procurar outro"),
+      ]),
+    ]),
+  ]);
+  /* busca: um campo e dois seletores no mesmo bloco */
+  var q = h("input", "search");
+  q.id = "qb";
+  q.type = "search";
+  q.placeholder = "Título, autor ou tema";
+  function seletor(id, rot, opcoes, set) {
+    var s = h("select", "bib-sel");
+    s.id = id;
+    opcoes.forEach((o) => {
+      var op = h("option", null, o[1]);
+      op.value = o[0];
+      s.appendChild(op);
+    });
+    s.onchange = () => {
+      set(s.value);
       d();
-    },
-    cont,
+    };
+    var l = h("label", "oculto-leitor", rot);
+    l.htmlFor = id;
+    return h("div", null, [l, s]);
+  }
+  var lb = h("label", "bib-rot", "Procurar na estante");
+  lb.htmlFor = "qb";
+  var busca = h("div", "bib-busca", [
+    lb,
+    q,
+    h("div", "bib-sels", [
+      seletor("bib-nivel", "Nível", [["", "Todos os níveis"]].concat(NIV.map((n) => [n, n])), (v) => {
+        nv = v;
+      }),
+      seletor(
+        "bib-formato",
+        "Formato",
+        [
+          ["", "Texto e PDF"],
+          ["Texto", "Texto"],
+          ["PDF", "PDF"],
+        ],
+        (v) => {
+          fm = v;
+        },
+      ),
+    ]),
+  ]);
+  var atalhos = h(
+    "nav",
+    "bib-areas",
+    areas.map((a, k) => {
+      var x = ln("#", "chip", [a, h("span", "ct", String(cont[a]))]);
+      x.onclick = (e) => {
+        e.preventDefault();
+        var alvo = document.getElementById("estante-" + k);
+        if (alvo) alvo.scrollIntoView({ behavior: calmo ? "auto" : "smooth", block: "start" });
+      };
+      return x;
+    }),
   );
-  var syncN = chipRow(
-    cn,
-    [""].concat(NIV),
-    () => nv,
-    (v) => {
-      nv = v;
-      d();
-    },
-  );
-  var fm = "",
-    cf = h("div", "chips"),
-    syncF = chipRow(
-      cf,
-      ["", "Texto", "PDF"],
-      () => fm,
-      (v) => {
-        fm = v;
-        d();
-      },
-    );
+  atalhos.setAttribute("aria-label", "Ir para uma área");
+  var corpo = h("div", "bib-corpo"),
+    ct = h("p", "count");
+  ct.setAttribute("aria-live", "polite");
+  /* sem busca nem filtro: prateleiras por área; com busca ou filtro: um único resultado */
   function d() {
-    syncA();
-    syncN();
-    syncF();
-    var s = q.value.trim().toLowerCase();
-    grid.textContent = "";
+    var t = q.value.trim().toLowerCase();
+    corpo.textContent = "";
+    if (!t && !nv && !fm) {
+      ct.textContent = all.length + " livros em " + areas.length + " áreas";
+      atalhos.hidden = false;
+      areas.forEach((a, k) => {
+        var fila = h("div", "prateleira");
+        all
+          .filter((b) => b.area === a)
+          .forEach((b) => {
+            fila.appendChild(bookCard(b));
+          });
+        var sec = h("section", "estante", [h("h2", null, [a, " ", h("span", "ct", String(cont[a]))]), fila]);
+        sec.id = "estante-" + k;
+        corpo.appendChild(sec);
+      });
+      return;
+    }
+    atalhos.hidden = true;
     var r = all.filter(
       (b) =>
-        (!ar || b.area === ar) &&
         (!nv || b.nivel === nv) &&
         (!fm || b.formato === fm) &&
-        (!s || (b.t + " " + b.a + " " + b.tema + " " + b.area).toLowerCase().indexOf(s) > -1),
+        (!t || (b.t + " " + b.a + " " + b.tema + " " + b.area).toLowerCase().indexOf(t) > -1),
     );
-    ct.textContent = (r.length === 1 ? "1 livro" : r.length + " livros") + (nv ? " · nível " + nv.toLowerCase() : "");
-    if (!r.length) grid.appendChild(h("p", "txt", "Nada encontrado. Tente outra palavra ou limpe os filtros."));
-    r.forEach((b, i) => {
+    ct.textContent = r.length === 1 ? "1 livro encontrado" : r.length + " livros encontrados";
+    var grid = h("div", "books");
+    if (!r.length) grid.appendChild(h("p", "txt", "Nada encontrado. Tente outra palavra ou mude o nível e o formato."));
+    r.forEach((b, k) => {
       var c = bookCard(b);
-      c.style.setProperty("--i", Math.min(i, 16));
+      c.style.setProperty("--i", Math.min(k, 16));
       grid.appendChild(c);
     });
+    corpo.appendChild(grid);
   }
   q.oninput = d;
   d();
@@ -3698,12 +3748,14 @@ function vBiblioteca(foco) {
     h("b", null, "Página oficial"),
     " no leitor para ver a origem de cada um.",
   ]);
-  return page(
-    "Biblioteca",
-    "Leia tudo aqui.",
-    "Livros gratuitos e de licença aberta, do básico ao avançado, para ler no próprio site, em texto ou PDF.",
-    [q, h("div", "label", "Área"), ca, h("div", "label", "Nível"), cn, h("div", "label", "Formato"), cf, ct, grid, src],
-  );
+  return h("div", "wrap pg biblioteca", [
+    h("h1", "oculto-leitor", "Biblioteca"),
+    h("div", "bib-topo", [destaque, busca]),
+    atalhos,
+    ct,
+    corpo,
+    src,
+  ]);
 }
 
 /* ---------- leitor ---------- */
@@ -4560,7 +4612,7 @@ function route() {
 }
 /* sem suporte a animação ligada à rolagem: blocos abaixo da dobra entram em foco quando chegam à tela */
 var REVELAR =
-  ".vitrine > *, .cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
+  ".vitrine > *, .estante, .cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
 function revelarAoRolar(raiz) {
   // onde o CSS anima pela rolagem (animation-timeline), ele mesmo cuida da revelação
   if (calmo || !window.IntersectionObserver || (window.CSS && CSS.supports("animation-timeline: view()"))) return;
