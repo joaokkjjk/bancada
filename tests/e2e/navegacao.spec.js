@@ -3,7 +3,7 @@ import { abrir, vigiarErros } from "./apoio.js";
 
 const ROTAS = [
   ["", /Toda a informática/],
-  ["biblioteca", /Leia tudo aqui/],
+  ["biblioteca", /Biblioteca/],
   ["pecas", /Uma peça de cada vez/],
   ["guias", /Passo a passo/],
   ["glossario", /Termos sem mistério/],
@@ -95,4 +95,18 @@ test("o início lembra o último livro aberto e a trilha em andamento", async ({
   await expect(page.locator(".vt-ler b")).toContainText("Por dentro do PC");
   await expect(page.locator(".vitrine")).toContainText("Memória RAM");
   await expect(page.locator(".vitrine")).toContainText("Módulo 2 de 6");
+});
+
+test("a biblioteca mostra prateleiras e vira resultado ao buscar", async ({ page }) => {
+  await abrir(page, "biblioteca");
+  await expect(page.locator(".bib-destaque h2")).toBeVisible();
+  const estantes = await page.locator(".estante").count();
+  expect(estantes).toBeGreaterThan(3);
+  await page.locator("#qb").fill("python");
+  await expect(page.locator(".estante")).toHaveCount(0);
+  await expect(page.locator(".books .book").first()).toBeVisible();
+  await expect(page.locator(".count")).toContainText("encontrado");
+  await page.locator("#qb").fill("");
+  await page.locator("#bib-formato").selectOption("PDF");
+  await expect(page.locator(".books .book").first()).toBeVisible();
 });
