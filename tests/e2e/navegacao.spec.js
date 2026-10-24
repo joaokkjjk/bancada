@@ -4,7 +4,7 @@ import { abrir, vigiarErros } from "./apoio.js";
 const ROTAS = [
   ["", /Toda a informática/],
   ["biblioteca", /Biblioteca/],
-  ["pecas", /Uma peça de cada vez/],
+  ["pecas", /Abra o gabinete/],
   ["guias", /Passo a passo/],
   ["glossario", /Glossário/],
   ["trilhas", /Escolha um caminho/],
@@ -119,4 +119,14 @@ test("o glossário leva à letra escolhida e marca a letra na barra", async ({ p
   await expect(page.locator(".dic-letras a[aria-current]")).toHaveText("M");
   await page.locator(".dic-temas .chip").first().click();
   await expect(page.locator(".dic-letra")).toHaveCount(0);
+});
+
+test("as peças acendem juntas no desenho e na lista e abrem a página da peça", async ({ page }) => {
+  await abrir(page, "pecas");
+  await expect(page.locator(".pc-marca")).toHaveCount(8);
+  await page.locator(".pc-item", { hasText: "Placa de vídeo" }).hover();
+  await expect(page.locator(".pc-marca.on")).toHaveText("5");
+  await expect(page.locator('[data-p="gpu"]')).toHaveClass(/on/);
+  await page.locator(".pc-marca", { hasText: /^1$/ }).click();
+  await expect(page).toHaveURL(/#\/pecas\/cpu/);
 });
