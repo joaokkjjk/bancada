@@ -798,16 +798,12 @@ function vHome() {
       glossario: G.length + " termos",
     };
   var txt = h("div", "ih-txt", [
+    h("span", "ih-selo", "HARDWARE · SOFTWARE · PROGRAMAÇÃO"),
     h("h1", null, [h("span", "l1", "Toda a informática"), h("span", "l2", "num lugar só.")]),
-    h("p", "sub", "Grátis. Para sempre."),
-    h(
-      "p",
-      "txt",
-      "Livros, peças em 3D, guias e um glossário que estavam espalhados pela internet, reunidos e explicados em português.",
-    ),
+    h("p", "txt", "Livros abertos, peças em 3D, guias e trilhas em português. Grátis, para sempre."),
     h("div", "ih-acoes", [
-      ln("#/biblioteca", "bt-pri", "Começar pelos livros"),
-      ln("#/pecas", "bt-sec", "Explorar as peças 3D"),
+      ln("#/trilhas", "bt-pri", "Começar uma trilha"),
+      ln("#/biblioteca", "bt-sec", "Ver a biblioteca"),
     ]),
   ]);
   /* imagem do cooler da identidade visual; acompanha levemente o mouse. Fica no celular e se o 3D falhar */
@@ -848,39 +844,82 @@ function vHome() {
       h("p", "hint", [ln("#/pecas/cpu", null, "Ver o processador por dentro →")]),
     ]);
   } else palco = imagemCooler();
-  var cats = h("div", "cats");
-  SECOES.slice(0, 4).forEach((x) => {
-    var a = ln("#/" + x[0], "cat", [h("i"), h("b", null, x[1]), h("span", null, x[2]), h("em", null, cont[x[0]])]);
-    a.querySelector("i").outerHTML = ICO[x[3]];
-    cats.appendChild(a);
-  });
-  var duo = h("div", "duo-cards");
-  SECOES.slice(4).forEach((x) => {
-    var a = ln("#/" + x[0], null, [h("i", "ic"), h("b", null, x[1]), h("span", null, x[2]), h("i", null, "→")]);
-    a.querySelector("i.ic").outerHTML = ICO[x[3]];
-    duo.appendChild(a);
-  });
-  var shelf = h("div", "shelf");
-  todos()
-    .filter((b) => b.area === "Hardware e eletrônica")
-    .slice(0, 12)
-    .forEach((b) => {
-      shelf.appendChild(bookCard(b));
+  return h("div", "inicio", [h("section", "wrap inicio-hero", [txt, palco]), h("section", "wrap", [vitrine(cont)])]);
+}
+/* mosaico do início: mostra conteúdo de verdade (o que continuar, um termo, uma trilha), em vez de repetir o menu */
+function vitrine(cont) {
+  var lst = todos(),
+    ul = ultimo("livro"),
+    lv = ul && lst.filter((x) => x.href.split("/")[2] === ul.id)[0],
+    livro = lv || lst.filter((x) => x.proprio)[0] || lst[0],
+    href = lv ? ul.href : livro.href;
+  var capas = h("div", "vt-capas", [cover(livro)]);
+  lst
+    .filter((x) => x !== livro && x.area === livro.area)
+    .slice(0, 2)
+    .forEach((x) => {
+      capas.appendChild(cover(x));
     });
-  return h("div", "inicio", [
-    h("section", "wrap inicio-hero", [txt, palco]),
-    h("section", "wrap", [cats, duo]),
-    h("section", "wrap sec", [
-      h("div", "sec-head", [h("h2", null, "Para ler aqui, agora"), ln("#/biblioteca", "", "Ver todos os livros →")]),
-      shelf,
-    ]),
-    h("section", "wrap", [
-      h("div", "lema", [
-        h("p", null, ["CONHECER", document.createElement("br"), "CONSTRUIR", document.createElement("br"), "EXPLORAR"]),
-        h("p", null, "Um espaço livre, completo e feito para quem aprende, constrói e explora."),
+  var termo = G[Math.floor(Date.now() / 864e5) % G.length];
+  var um = ultimo("modulo"),
+    tk = um && TRN[um.k] ? um.k : ORDEM[0],
+    tn = um && TRN[um.k] ? Math.min(um.n, TRN[tk].modulos.length) : 1,
+    mod = TRN[tk].modulos[tn - 1],
+    prog = progresso(),
+    qs = todasQuestoes().filter((q) => q.tema === tk),
+    feitas = qs.filter((q) => prog[q.id] === 1).length;
+  var barra = h("div", "prog", [h("i")]);
+  barra.firstChild.style.width = (qs.length ? (feitas / qs.length) * 100 : 0) + "%";
+  return h("div", "vitrine", [
+    ln(href, "vt vt-ler", [
+      h("span", "vt-k", lv ? "CONTINUE LENDO" : "COMECE A LER"),
+      capas,
+      h("div", null, [
+        h("b", null, livro.t),
+        h(
+          "span",
+          null,
+          lv ? "Volte de onde parou · " + cont.biblioteca + " no site" : livro.a + " · " + cont.biblioteca + " no site",
+        ),
       ]),
     ]),
+    ln("#/glossario/" + encodeURIComponent(termo[0]), "vt", [
+      h("span", "vt-k", "TERMO DO DIA"),
+      h("div", null, [h("b", null, termo[0]), h("p", null, termo[1])]),
+    ]),
+    ln("#/trilhas/" + tk + "/" + tn, "vt", [
+      h("span", "vt-k", um ? "CONTINUE A TRILHA" : "TRILHA PARA COMEÇAR"),
+      h("div", null, [
+        h("b", null, TRN[tk].n),
+        h("span", null, "Módulo " + tn + " de " + TRN[tk].modulos.length + " · " + mod.n),
+        barra,
+      ]),
+    ]),
+    ln("#/pecas", "vt", [
+      h("span", "vt-k", "PEÇAS EM 3D"),
+      h("div", null, [h("b", null, cont.pecas), h("span", null, "Gire, abra e compare")]),
+    ]),
+    ln("#/jogo", "vt vt-claro", [
+      h("span", "vt-k", "JOGO"),
+      h("div", null, [h("b", null, "Gargalo"), h("span", null, "Monte um PC e vença os chefes")]),
+    ]),
   ]);
+}
+/* lembra o último livro e o último módulo abertos, para o início e as trilhas oferecerem "continue" */
+var ULTIMO = "bancada-ultimo";
+function lembrar(tipo, valor) {
+  try {
+    var u = JSON.parse(localStorage.getItem(ULTIMO) || "{}");
+    u[tipo] = valor;
+    localStorage.setItem(ULTIMO, JSON.stringify(u));
+  } catch {}
+}
+function ultimo(tipo) {
+  try {
+    return JSON.parse(localStorage.getItem(ULTIMO) || "{}")[tipo] || null;
+  } catch {
+    return null;
+  }
 }
 
 /* ---------- busca geral: livros, peças e variantes, guias, glossário e módulos das trilhas ---------- */
@@ -3311,39 +3350,6 @@ function vJogo() {
   return caixa;
 }
 
-/* ---------- fichas ---------- */
-function vFichas() {
-  var k = F.map((f) => {
-    var tb = h("table");
-    tb.appendChild(
-      h("thead", null, [
-        h(
-          "tr",
-          null,
-          f.h.map((c) => h("th", null, c)),
-        ),
-      ]),
-    );
-    tb.appendChild(
-      h(
-        "tbody",
-        null,
-        f.r.map((r) =>
-          h(
-            "tr",
-            null,
-            r.map((c) => h("td", null, c)),
-          ),
-        ),
-      ),
-    );
-    return h("div", "panel", [h("h2", null, f.t), h("p", "note", f.n), h("div", "tw", [tb])]);
-  });
-  return page("Fichas rápidas", "Consulta rápida.", "Tabelas para os padrões que mudam com o tempo.", [
-    h("div", "fichas", k),
-  ]);
-}
-
 /* ---------- peças ---------- */
 function vPecas() {
   var g = h("div", "parts");
@@ -4548,11 +4554,13 @@ function route() {
     else a.removeAttribute("aria-current");
   });
   window.scrollTo({ top: 0, behavior: "instant" });
+  if (n && (r === "ler" || r === "pdf") && sec === "biblioteca") lembrar("livro", { id: p[1], href: location.hash });
+  if (n && r === "trilhas" && p[2] && TRN[p[1]]) lembrar("modulo", { k: p[1], n: +p[2] || 1 });
   revelarAoRolar(app);
 }
 /* sem suporte a animação ligada à rolagem: blocos abaixo da dobra entram em foco quando chegam à tela */
 var REVELAR =
-  ".cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
+  ".vitrine > *, .cat, .duo-cards a, .lema, .sec-head, .shelf > *, .books > *, .parts > *, details.g, .panel, .mods > *, .qlist > *, figure.vis, .var-ficha, .art-body section, .levels > *, .trilhas-g > *";
 function revelarAoRolar(raiz) {
   // onde o CSS anima pela rolagem (animation-timeline), ele mesmo cuida da revelação
   if (calmo || !window.IntersectionObserver || (window.CSS && CSS.supports("animation-timeline: view()"))) return;

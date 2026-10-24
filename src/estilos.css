@@ -4740,6 +4740,7 @@ header.top.rolou .topin {
 /* revelar ao rolar, ligado à rolagem (Chrome, Edge): o bloco sobe e entra em foco acompanhando o scroll.
    Nos outros navegadores o JS usa a classe .revelar abaixo; com movimento reduzido, nada disso roda. */
 @supports (animation-timeline: view()) {
+  .vitrine > *,
   .cat,
   .duo-cards a,
   .lema,
@@ -5571,6 +5572,119 @@ footer {
 }
 @media (max-width: 760px) {
   .inicio .ih-3d {
+    display: none;
+  }
+}
+
+/* ===== início: vitrine viva (Issue #14) ===== */
+.ih-selo {
+  font: 500 12px var(--mono);
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  animation: entra 0.6s var(--ease) both;
+}
+.vitrine {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(170px, auto);
+  gap: 14px;
+  margin-bottom: 64px;
+}
+.vt {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    translate 0.2s var(--ease);
+}
+.vt:hover {
+  translate: 0 -3px;
+  border-color: var(--soft);
+  background: var(--raised);
+}
+.vt-k {
+  font: 500 12px var(--mono);
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.vt b {
+  display: block;
+  font: 700 22px / 1.15 var(--display);
+  letter-spacing: -0.02em;
+}
+.vt span:not(.vt-k),
+.vt p {
+  display: block;
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.vt .prog {
+  margin-top: 12px;
+}
+.vt-ler {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.vt-ler b {
+  font-size: 28px;
+}
+.vt-capas {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex: 1;
+}
+.vt-capas .cover {
+  width: 150px;
+  flex: none;
+}
+.vt-capas .cover:first-child {
+  width: 170px;
+}
+.vt-claro {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+.vt-claro:hover {
+  background: var(--claro);
+  border-color: var(--claro);
+}
+.vt-claro .vt-k,
+.vt-claro span:not(.vt-k) {
+  color: #3a3a3a;
+}
+@media (max-width: 900px) {
+  .vitrine {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .vitrine {
+    grid-template-columns: 1fr;
+  }
+  .vt-ler {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .vt-capas .cover {
+    width: 120px;
+  }
+  .vt-capas .cover:first-child {
+    width: 140px;
+  }
+  .vt-capas .cover:nth-child(3) {
     display: none;
   }
 }
