@@ -3287,58 +3287,138 @@ function vGuias() {
 }
 
 /* ---------- glossário ---------- */
+/* glossário como dicionário: letras de A a Z na lateral, termos em duas colunas e termo do dia */
+function letraDe(t) {
+  return t.charAt(0).toUpperCase().normalize("NFD").charAt(0);
+}
 function vGlos(q0) {
   var q = h("input", "search"),
-    l = h("div"),
+    lista = h("div", "dic-lista"),
     cat = "",
-    cats = [""],
-    ct = { "": G.length },
-    cb = h("div", "chips"),
-    cn = h("p", "count");
+    cats = [],
+    ct = {},
+    cn = h("span", "dic-n");
   q.id = "q";
   q.type = "search";
   q.value = q0 || "";
-  q.placeholder = "Buscar termo (ex.: cache, DNS, commit)";
-  q.setAttribute("aria-label", "Buscar no glossário");
+  q.placeholder = "Buscar termo: cache, DNS, commit…";
+  var lq = h("label", "oculto-leitor", "Buscar no glossário");
+  lq.htmlFor = "q";
   G.forEach((t) => {
     if (cats.indexOf(t[2]) < 0) cats.push(t[2]);
     ct[t[2]] = (ct[t[2]] || 0) + 1;
   });
-  var sync = chipRow(
-    cb,
-    cats,
-    () => cat,
-    (v) => {
-      cat = v;
-      d();
-    },
-    ct,
-  );
-  function d() {
-    sync();
-    var s = q.value.trim().toLowerCase();
-    l.textContent = "";
-    var r = G.filter((t) => (!cat || t[2] === cat) && (!s || (t[0] + " " + t[1]).toLowerCase().indexOf(s) > -1));
-    cn.textContent = r.length === 1 ? "1 termo" : r.length + " termos";
-    if (!r.length) l.appendChild(h("p", "txt", "Nenhum termo encontrado. Tente outra palavra ou outra categoria."));
-    var ult = "";
-    r.forEach((t) => {
-      var L = t[0].charAt(0).toUpperCase().normalize("NFD").charAt(0);
-      if (!s && L !== ult) {
-        ult = L;
-        l.appendChild(h("div", "letter", L));
+  cats.sort((a, b) => ct[b] - ct[a]);
+  var letras = [];
+  G.forEach((t) => {
+    var L = letraDe(t[0]);
+    if (letras.indexOf(L) < 0) letras.push(L);
+  });
+  letras.sort((a, b) => a.localeCompare(b, "pt-BR"));
+  /* barra de letras: leva à letra e marca a que está na tela */
+  var nav = h("nav", "dic-letras"),
+    bL = {};
+  nav.setAttribute("aria-label", "Letras");
+  letras.forEach((L) => {
+    var b = h("a", null, L);
+    b.href = "#";
+    b.onclick = (e) => {
+      e.preventDefault();
+      if (q.value || cat) {
+        q.value = "";
+        cat = "";
+        d();
       }
-      l.appendChild(h("div", "term", [h("b", null, t[0]), h("span", null, t[1]), h("i", null, t[2])]));
+      var alvo = document.getElementById("letra-" + L);
+      if (alvo) alvo.scrollIntoView({ behavior: calmo ? "auto" : "smooth", block: "start" });
+    };
+    bL[L] = b;
+    nav.appendChild(b);
+  });
+  function marcar(L) {
+    Object.keys(bL).forEach((k) => {
+      if (k === L) bL[k].setAttribute("aria-current", "true");
+      else bL[k].removeAttribute("aria-current");
     });
   }
+  /* a letra marcada é a última cujo título já passou do topo da tela */
+  var cabs = [],
+    tk = 0;
+  function marcarVisivel() {
+    var at = cabs.length ? cabs[0].dataset.l : null;
+    for (var c of cabs) {
+      if (c.getBoundingClientRect().top < 220) at = c.dataset.l;
+      else break;
+    }
+    marcar(at);
+  }
+  var aoRolar = () => {
+    if (!tk)
+      tk = requestAnimationFrame(() => {
+        tk = 0;
+        marcarVisivel();
+      });
+  };
+  window.addEventListener("scroll", aoRolar, { passive: true });
+  limpar.push(() => window.removeEventListener("scroll", aoRolar));
+  function item(t) {
+    return h("div", "term", [h("dt", null, t[0]), h("dd", null, [t[1], " ", h("span", "tag", t[2])])]);
+  }
+  function d() {
+    var s = q.value.trim().toLowerCase();
+    lista.textContent = "";
+    cabs = [];
+    temas.querySelectorAll("button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.v === cat));
+    });
+    var r = G.filter((t) => (!cat || t[2] === cat) && (!s || (t[0] + " " + t[1]).toLowerCase().indexOf(s) > -1));
+    cn.textContent = r.length === 1 ? "1 termo" : r.length + " termos";
+    if (!r.length) {
+      lista.appendChild(h("p", "txt", "Nenhum termo encontrado. Tente outra palavra ou outro tema."));
+      return;
+    }
+    if (s || cat) {
+      marcar(null);
+      lista.appendChild(h("dl", "dic-col", r.map(item)));
+      return;
+    }
+    letras.forEach((L) => {
+      var dos = r.filter((t) => letraDe(t[0]) === L);
+      if (!dos.length) return;
+      var cab = h("h2", "dic-letra", L);
+      cab.id = "letra-" + L;
+      cab.dataset.l = L;
+      cabs.push(cab);
+      lista.appendChild(h("section", "dic-sec", [cab, h("dl", "dic-col", dos.map(item))]));
+    });
+    requestAnimationFrame(marcarVisivel);
+  }
+  /* termo do dia e filtro por tema */
+  var termo = G[Math.floor(Date.now() / 864e5) % G.length];
+  var temas = h("div", "dic-temas");
+  cats.forEach((c) => {
+    var b = h("button", "chip", [c, " ", h("span", "ct", String(ct[c]))]);
+    b.type = "button";
+    b.dataset.v = c;
+    b.onclick = () => {
+      cat = cat === c ? "" : c;
+      d();
+    };
+    temas.appendChild(b);
+  });
+  var lado = h("aside", "dic-lado", [
+    h("div", "dic-dia", [h("span", "vt-k", "TERMO DO DIA"), h("b", null, termo[0]), h("p", null, termo[1])]),
+    h("div", "dic-filtro", [h("span", "vt-k", "POR TEMA"), temas]),
+  ]);
   q.oninput = d;
   d();
-  return page(
-    "Glossário",
-    "Termos sem mistério.",
-    "Vocabulário de hardware, software, redes, programação, segurança e IA em linguagem simples.",
-    [q, cb, cn, l],
-  );
+  return h("div", "wrap pg glossario", [
+    h("div", "dic", [
+      nav,
+      h("div", "dic-meio", [h("div", "dic-cab", [h("h1", null, "Glossário"), cn]), lq, q, lista]),
+      lado,
+    ]),
+  ]);
 }
 
 /* ---------- jogo ---------- */

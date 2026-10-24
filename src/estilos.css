@@ -5820,3 +5820,164 @@ footer {
     grid-auto-columns: 130px;
   }
 }
+
+/* ===== glossário como dicionário (Issue #16) ===== */
+.dic {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: start;
+}
+.dic-letras {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dic-letras a {
+  display: block;
+  padding: 3px 0;
+  border-radius: var(--r-sm);
+  text-align: center;
+  font: 600 14px var(--display);
+  color: var(--text-2);
+  text-decoration: none;
+  transition:
+    background 0.2s var(--ease),
+    color 0.2s var(--ease);
+}
+.dic-letras a:hover {
+  background: var(--raised);
+  color: #fff;
+}
+.dic-letras a[aria-current="true"] {
+  background: #fff;
+  color: var(--ink);
+}
+.dic-meio {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.dic-cab {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  animation: entra 0.6s var(--ease) both;
+}
+.dic-cab h1 {
+  margin: 0;
+  font: 800 clamp(34px, 4vw, 48px) var(--display);
+  letter-spacing: -0.03em;
+}
+.dic-n {
+  font: 500 14px var(--mono);
+  color: var(--muted);
+}
+.dic-sec {
+  scroll-margin-top: 90px;
+}
+.dic-letra {
+  margin: 18px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  font: 800 52px / 1 var(--display);
+  scroll-margin-top: 90px;
+}
+.dic-col {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+}
+.dic-col .term {
+  display: block;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.dic-col dt {
+  font: 700 17px var(--display);
+}
+.dic-col dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.dic-col .tag {
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+.dic-lado {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 14px;
+}
+.dic-dia {
+  display: grid;
+  gap: 8px;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  background: #fff;
+  color: var(--ink);
+  animation: entra 0.6s 0.08s var(--ease) both;
+}
+.dic-dia .vt-k {
+  color: #4a4a4a;
+}
+.dic-dia b {
+  font: 800 30px var(--display);
+  letter-spacing: -0.02em;
+}
+.dic-dia p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2b2b2b;
+}
+.dic-filtro {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.dic-temas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 1000px) {
+  .dic {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dic-letras {
+    position: sticky;
+    top: 64px;
+    z-index: 4;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 8px 0;
+    background: var(--bg);
+    scrollbar-width: none;
+  }
+  .dic-letras a {
+    flex: none;
+    width: 34px;
+  }
+  .dic-lado {
+    position: static;
+    order: -1;
+  }
+}
+@media (max-width: 640px) {
+  .dic-col {
+    grid-template-columns: 1fr;
+  }
+}
