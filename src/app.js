@@ -90,49 +90,8 @@ function chipRow(box, items, get, set, counts) {
 }
 var limpar = []; /* funções chamadas ao trocar de página (ex.: liberar o 3D) */
 
-/* ---------- ilustrações das peças para a lista (SVG em cinza) ---------- */
-var ART = {
-  cpu: '<svg viewBox="0 0 400 400" aria-hidden="true"><defs><linearGradient id="ihs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f2f2"/><stop offset=".45" stop-color="#b9b9bc"/><stop offset="1" stop-color="#6d6d70"/></linearGradient><pattern id="pads" width="9" height="9" patternUnits="userSpaceOnUse"><rect x="2" y="2" width="4" height="4" rx="1" fill="#8a8a8d"/></pattern></defs><g transform="rotate(-14 200 200)"><rect x="70" y="70" width="260" height="260" rx="10" fill="#1d1d20"/><rect x="78" y="78" width="244" height="244" rx="8" fill="url(#pads)" opacity=".35"/><path d="M110 92h180a18 18 0 0 1 18 18v180a18 18 0 0 1-18 18H110a18 18 0 0 1-18-18V110a18 18 0 0 1 18-18z" fill="url(#ihs)"/><text x="200" y="196" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="26" fill="#3a3a3d">BANCADA</text></g></svg>',
-  ram:
-    '<svg viewBox="0 0 400 400" aria-hidden="true"><g transform="rotate(-24 200 200)"><rect x="20" y="150" width="360" height="110" rx="6" fill="#1d1d20"/>' +
-    Array.from(
-      { length: 8 },
-      (_, i) => '<rect x="' + (34 + i * 44) + '" y="166" width="34" height="40" fill="#0b0b0c" stroke="#3a3a3d"/>',
-    ).join("") +
-    '<g fill="#c9c9cc">' +
-    Array.from(
-      { length: 30 },
-      (_, i) => '<rect x="' + (30 + i * 11.6) + '" y="236" width="7" height="20" rx="1"/>',
-    ).join("") +
-    '</g><rect x="196" y="236" width="10" height="24" fill="#1d1d20"/></g></svg>',
-  armazenamento:
-    '<svg viewBox="0 0 400 400" aria-hidden="true"><g transform="rotate(-30 200 200)"><rect x="30" y="165" width="340" height="70" rx="6" fill="#1d1d20"/><rect x="60" y="178" width="60" height="44" fill="#0b0b0c" stroke="#3a3a3d"/><rect x="140" y="176" width="80" height="48" fill="#0b0b0c" stroke="#3a3a3d"/><rect x="236" y="176" width="80" height="48" fill="#0b0b0c" stroke="#3a3a3d"/><circle cx="354" cy="200" r="8" fill="none" stroke="#9c9c9f" stroke-width="3"/></g></svg>',
-  gpu:
-    '<svg viewBox="0 0 400 400" aria-hidden="true"><g transform="rotate(-12 200 200)"><rect x="20" y="120" width="360" height="150" rx="16" fill="#2a2a2d"/>' +
-    [120, 280]
-      .map(
-        (cx) =>
-          '<circle cx="' +
-          cx +
-          '" cy="195" r="62" fill="#0d0d0e" stroke="#4a4a4d"/><circle cx="' +
-          cx +
-          '" cy="195" r="15" fill="#d9d9dc"/>',
-      )
-      .join("") +
-    '<rect x="110" y="270" width="170" height="10" fill="#c9c9cc"/></g></svg>',
-};
-function partArt(id) {
-  return ART[id]
-    ? svg(ART[id])
-    : svg(
-        '<svg viewBox="0 0 200 130" aria-hidden="true"><text x="100" y="98" text-anchor="middle" font-family="Sora,sans-serif" font-weight="800" font-size="96" fill="none" stroke="#949497" stroke-width="1.2">' +
-          id.charAt(0).toUpperCase() +
-          "</text></svg>",
-      );
-}
-
 /* ---------- visualizador 3D ---------- */
-/* cena comum ao visualizador e às miniaturas: luz de estúdio com reflexos (RoomEnvironment) e sombra no chão */
+/* cena do visualizador 3D: luz de estúdio com reflexos (RoomEnvironment) e sombra no chão */
 function montarCena(id, R) {
   var T = THREE;
   R.outputEncoding = T.sRGBEncoding;
@@ -184,66 +143,6 @@ function montarCena(id, R) {
   chao.receiveShadow = true;
   scene.add(chao);
   return { scene: scene, cam: cam, built: built, model: model, size: size };
-}
-/* miniaturas dos cards da aba Peças, desenhadas uma vez a partir dos modelos 3D */
-var MINI = {};
-function miniatura(id, img) {
-  if (MINI[id]) {
-    img.src = MINI[id];
-    return;
-  }
-  if (!window.MODELOS3D || !MODELOS3D[id]) return;
-  var depois = window.requestIdleCallback || ((f) => setTimeout(f, 16));
-  miniatura.fila = (miniatura.fila || Promise.resolve()).then(
-    () =>
-      new Promise((ok) => {
-        depois(() => {
-          try {
-            var T = THREE,
-              R =
-                miniatura.R ||
-                (miniatura.R = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }));
-            R.setPixelRatio(1);
-            R.setSize(560, 420, false);
-            var c = montarCena(id, R),
-              d = new T.Vector3()
-                .fromArray(c.built.cam || [5, 5, 8])
-                .normalize()
-                .multiplyScalar(c.size * 1.75);
-            c.cam.position.copy(d);
-            c.cam.aspect = 4 / 3;
-            c.cam.lookAt(0, 0, 0);
-            c.cam.updateProjectionMatrix();
-            R.render(c.scene, c.cam);
-            MINI[id] = R.domElement.toDataURL("image/png");
-            img.src = MINI[id];
-            c.scene.traverse((o) => {
-              if (o.geometry) o.geometry.dispose();
-              if (o.material) {
-                if (o.material.map) o.material.map.dispose();
-                o.material.dispose();
-              }
-            });
-          } catch (e) {}
-          ok();
-        });
-      }),
-  );
-}
-/* chama fn uma vez, quando o elemento chega a 300 px da área visível */
-function quandoVisivel(el, fn) {
-  if (!window.IntersectionObserver) return fn();
-  var o = new IntersectionObserver(
-    (es) => {
-      if (es.some((e) => e.isIntersecting)) {
-        o.disconnect();
-        fn();
-      }
-    },
-    { rootMargin: "300px" },
-  );
-  o.observe(el);
-  limpar.push(() => o.disconnect());
 }
 /* Three.js e os modelos só são baixados quando alguma tela mostra 3D */
 var URL3D = [
@@ -3468,37 +3367,84 @@ function vJogo() {
 }
 
 /* ---------- peças ---------- */
+/* peças como um PC aberto: o gabinete desenhado com cada peça numerada, e a lista ao lado */
+var PC_POS = {
+  cpu: [245, 145],
+  "placa-mae": [140, 92],
+  ram: [348, 150],
+  armazenamento: [172, 211],
+  gpu: [255, 272],
+  fonte: [195, 425],
+  refrigeracao: [420, 120],
+  gabinete: [440, 455],
+};
+var PC_SVG =
+  '<svg viewBox="0 0 560 520" fill="none" aria-hidden="true">' +
+  '<rect data-p="gabinete" class="pc-forma" x="90" y="40" width="380" height="440" rx="14"/>' +
+  '<rect data-p="placa-mae" class="pc-forma" x="120" y="70" width="260" height="300" rx="6"/>' +
+  '<rect data-p="cpu" class="pc-forma claro" x="210" y="110" width="70" height="70" rx="4"/>' +
+  '<g data-p="ram" class="pc-forma medio"><rect x="300" y="100" width="10" height="110"/><rect x="318" y="100" width="10" height="110"/></g>' +
+  '<rect data-p="armazenamento" class="pc-forma medio" x="150" y="200" width="44" height="22" rx="3"/>' +
+  '<rect data-p="gpu" class="pc-forma claro" x="140" y="250" width="230" height="44" rx="6"/>' +
+  '<rect data-p="fonte" class="pc-forma" x="120" y="390" width="150" height="70" rx="6"/>' +
+  '<g data-p="refrigeracao" class="pc-forma"><circle cx="420" cy="120" r="34"/><path d="M420 92 v56 M392 120 h56"/></g>' +
+  '<rect class="pc-forma" x="400" y="300" width="50" height="60" rx="4"/>' +
+  "</svg>";
 function vPecas() {
-  var g = h("div", "parts");
-  P.forEach((a, i) => {
-    var pic = h("div", "pic");
-    var VL = ((window.VARIANTES || {})[a.id] || {}).lista || [];
-    if (a.modelo3d !== false) {
-      var im = h("img");
-      im.alt = "";
-      im.width = 560;
-      im.height = 420;
-      im.decoding = "async";
-      pic.classList.add("esqueleto");
-      im.addEventListener("load", () => pic.classList.remove("esqueleto"), { once: true });
-      pic.appendChild(im);
-      quandoVisivel(pic, () => carregar3D().then(() => miniatura(a.id, im)));
-    } else pic.appendChild(partArt(a.id));
-    var card = ln("#/pecas/" + a.id, "part", [
-      pic,
-      h("span", "k3", "3D · " + (VL.length || 1) + " variantes · " + Object.keys(a.pontos || {}).length + " partes"),
-      h("b", null, a.n),
-      h("span", null, VL.length ? VL.map((v) => v.n).join(" · ") : a.r),
-    ]);
-    card.style.setProperty("--i", i);
-    g.appendChild(card);
+  var V = window.VARIANTES || {},
+    palco = h("div", "pc-palco"),
+    lista = h("ol", "pc-lista"),
+    itens = {},
+    formas = {};
+  palco.innerHTML = PC_SVG;
+  palco.querySelectorAll("[data-p]").forEach((f) => {
+    formas[f.dataset.p] = f;
   });
-  return page(
-    "Peças",
-    "Uma peça de cada vez.",
-    "Gire cada componente em 3D, clique nas partes e leia o que cada uma faz.",
-    [g],
-  );
+  /* a mesma peça acende no desenho, no número e na lista */
+  function ativar(id) {
+    Object.keys(itens).forEach((k) => {
+      var on = k === id;
+      itens[k].li.classList.toggle("on", on);
+      itens[k].m.classList.toggle("on", on);
+      if (formas[k]) formas[k].classList.toggle("on", on);
+    });
+  }
+  P.forEach((a, i) => {
+    var n = V[a.id] ? V[a.id].lista.length : 0,
+      pos = PC_POS[a.id] || [280, 260],
+      m = ln("#/pecas/" + a.id, "pc-marca", String(i + 1));
+    m.style.left = (pos[0] / 560) * 100 + "%";
+    m.style.top = (pos[1] / 520) * 100 + "%";
+    m.setAttribute("aria-label", a.n);
+    var li = h("li", null, [
+      ln("#/pecas/" + a.id, "pc-item", [
+        h("span", "pc-num", String(i + 1)),
+        h("b", null, a.n),
+        h("span", "pc-var", n ? n + " variantes" : "3D"),
+      ]),
+    ]);
+    [m, li].forEach((el) => {
+      el.addEventListener("pointerenter", () => ativar(a.id));
+      el.addEventListener("focusin", () => ativar(a.id));
+    });
+    if (formas[a.id]) formas[a.id].addEventListener("pointerenter", () => ativar(a.id));
+    itens[a.id] = { li: li, m: m };
+    palco.appendChild(m);
+    lista.appendChild(li);
+  });
+  palco.addEventListener("pointerleave", () => ativar(null));
+  lista.addEventListener("pointerleave", () => ativar(null));
+  var total = Object.keys(V).reduce((s, k) => s + V[k].lista.length, 0);
+  return h("div", "wrap pg pecas-pc", [
+    h("div", "pc", [
+      h("section", "pc-cena", [h("span", "vt-k", "PASSE O MOUSE OU TOQUE EM UMA PEÇA"), palco]),
+      h("aside", "pc-lado", [
+        h("h1", null, "Abra o gabinete."),
+        h("p", "lead", P.length + " peças em 3D e " + total + " variantes. Escolha uma para girar, abrir e comparar."),
+        lista,
+      ]),
+    ]),
+  ]);
 }
 /* página da peça: variantes com 3D, ficha, comparação lado a lado e tabelas de gerações */
 function vArtigo(a) {
