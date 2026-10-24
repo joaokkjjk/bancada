@@ -32,7 +32,7 @@ test("o menu leva às seções e marca a seção atual", async ({ page, isMobile
     await page.locator("nav.main a", { hasText: "Glossário" }).click();
   }
   await expect(page).toHaveURL(/#\/glossario/);
-  await expect(page.locator("#app h1")).toHaveText(/Termos/);
+  await expect(page.locator("#app h1")).toHaveText(/Glossário/);
   if (!isMobile) await expect(page.locator('nav.main a[data-r="glossario"]')).toHaveAttribute("aria-current", "page");
 });
 
